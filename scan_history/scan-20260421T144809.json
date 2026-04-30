@@ -1,0 +1,1539 @@
+{
+  "scan_id": "scan-20260421T144809",
+  "timestamp": "2026-04-21T14:48:09.338417",
+  "stats": {
+    "total_missions": 8,
+    "critical_count": 0,
+    "high_count": 0,
+    "overall_risk": 0,
+    "overall_severity": "LOW"
+  },
+  "detections": [
+    {
+      "mission_id": "SEC001",
+      "mission_name": "Anomalous Login Velocity & Immediate Fund Diversion",
+      "domain": "security",
+      "severity": "LOW",
+      "risk_score": 0,
+      "risk_factors": {},
+      "sql": null,
+      "data_count": 0,
+      "results": [],
+      "visualization_config": null,
+      "insight": null,
+      "recommendation": null,
+      "original_query": "Identify users exhibiting an unusually high velocity of successful logins ('status' = 'SUCCESS' in 'login_events') originating from a diverse set of 'country' and 'device_type' within a rolling 24-hour window. For these users, analyze if this login anomaly is immediately followed by a series of high-value outbound transactions ('txn_type' = 'TRANSFER' or 'WITHDRAWAL') with 'amount_usd' exceeding 50% of their historical average, and if the 'flag_reason' for these transactions is consistently absent or generic. This aims to detect sophisticated account takeovers where attackers rapidly compromise multiple access points before draining funds.",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1776782362.293,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1776782362.294,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Starting Intent Classification and Preprocessing in parallel for domain: security"
+        },
+        {
+          "ts": 1776782362.295,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classifying intent for domain: security | Query: Identify users exhibiting an unusually high velocity of successful logins ('status' = 'SUCCESS' in 'login_events') originating from a diverse set of 'country' and 'device_type' within a rolling 24-hour window. For these users, analyze if this login anomaly is immediately followed by a series of high-value outbound transactions ('txn_type' = 'TRANSFER' or 'WITHDRAWAL') with 'amount_usd' exceeding 50% of their historical average, and if the 'flag_reason' for these transactions is consistently absent or generic. This aims to detect sophisticated account takeovers where attackers rapidly compromise multiple access points before draining funds."
+        },
+        {
+          "ts": 1776782362.296,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782364.024,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash-lite]. Snippet: ```json\n{\n  \"intent\": \"SELECT\",\n  \"confidence\": 0...."
+        },
+        {
+          "ts": 1776782364.024,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classification Result: SELECT (conf: 0.9) | Needs Clarification: True"
+        },
+        {
+          "ts": 1776782437.252,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782437.542,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782439.795,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782444.002,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782452.002,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782452.004,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782452.287,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782454.54,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782458.843,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782466.843,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782466.844,
+          "level": "WARNING",
+          "node": "entity_extractor.py",
+          "msg": "EntityExtractor: LLM returned non-JSON response: Error: LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782674.216,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.9) | Needs Clarification: True"
+        },
+        {
+          "ts": 1776782747.833,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782748.123,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782750.324,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782754.514,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782762.514,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        }
+      ]
+    },
+    {
+      "mission_id": "SEC002",
+      "mission_name": "High-Risk Instrument Accumulation Post-KYC Drift",
+      "domain": "security",
+      "severity": "LOW",
+      "risk_score": 0,
+      "risk_factors": {},
+      "sql": null,
+      "data_count": 0,
+      "results": [],
+      "visualization_config": null,
+      "insight": null,
+      "recommendation": null,
+      "original_query": "Identify users whose 'kyc_status' has degraded from 'APPROVED' to 'PENDING' or 'FAILED' within the last 90 days. For these users, analyze if they have concurrently increased their engagement with 'instrument' types having an average 'risk_score' above 7.0, particularly if their 'risk_level' has also escalated or if they are flagged as 'is_pep' = TRUE. This mission aims to uncover potential attempts to exploit regulatory loopholes or circumvent enhanced due diligence processes during KYC re-evaluation.",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1776782362.294,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1776782362.294,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Starting Intent Classification and Preprocessing in parallel for domain: security"
+        },
+        {
+          "ts": 1776782364.024,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classifying intent for domain: security | Query: Identify users whose 'kyc_status' has degraded from 'APPROVED' to 'PENDING' or 'FAILED' within the last 90 days. For these users, analyze if they have concurrently increased their engagement with 'instrument' types having an average 'risk_score' above 7.0, particularly if their 'risk_level' has also escalated or if they are flagged as 'is_pep' = TRUE. This mission aims to uncover potential attempts to exploit regulatory loopholes or circumvent enhanced due diligence processes during KYC re-evaluation."
+        },
+        {
+          "ts": 1776782364.025,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782365.748,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash-lite]. Snippet: ```json\n{\n  \"intent\": \"SELECT\",\n  \"confidence\": 0...."
+        },
+        {
+          "ts": 1776782365.749,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classification Result: SELECT (conf: 0.9) | Needs Clarification: True"
+        },
+        {
+          "ts": 1776782466.844,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782467.135,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782469.334,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782473.587,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782481.587,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782481.589,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782481.882,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782484.136,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782488.438,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782496.439,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782496.439,
+          "level": "WARNING",
+          "node": "entity_extractor.py",
+          "msg": "EntityExtractor: LLM returned non-JSON response: Error: LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782674.217,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.9) | Needs Clarification: True"
+        },
+        {
+          "ts": 1776782718.383,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782718.602,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782720.796,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782725.08,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782733.08,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        }
+      ]
+    },
+    {
+      "mission_id": "COM001",
+      "mission_name": "PEP Transaction Pattern Shift with New Instruments",
+      "domain": "compliance",
+      "severity": "LOW",
+      "risk_score": 0,
+      "risk_factors": {},
+      "sql": null,
+      "data_count": 0,
+      "results": [],
+      "visualization_config": null,
+      "insight": null,
+      "recommendation": null,
+      "original_query": "Identify Politically Exposed Persons (PEPs) whose transaction patterns exhibit a significant deviation from their historical norms, specifically focusing on a sudden increase in transactions with newly introduced high-risk 'instrument' types or a disproportionate use of 'payment_method's not previously utilized. Analyze if these deviations correlate with an elevated 'risk_score' or a change in 'kyc_status' within the preceding 90 days, suggesting potential attempts to bypass enhanced due diligence through complex financial maneuvers.",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1776782362.294,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1776782362.294,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Starting Intent Classification and Preprocessing in parallel for domain: compliance"
+        },
+        {
+          "ts": 1776782365.749,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classifying intent for domain: compliance | Query: Identify Politically Exposed Persons (PEPs) whose transaction patterns exhibit a significant deviation from their historical norms, specifically focusing on a sudden increase in transactions with newly introduced high-risk 'instrument' types or a disproportionate use of 'payment_method's not previously utilized. Analyze if these deviations correlate with an elevated 'risk_score' or a change in 'kyc_status' within the preceding 90 days, suggesting potential attempts to bypass enhanced due diligence through complex financial maneuvers."
+        },
+        {
+          "ts": 1776782365.75,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782366.067,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782368.268,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782372.518,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782380.519,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782380.519,
+          "level": "ERROR",
+          "node": "INTENT",
+          "msg": "Intent classification error: Expecting value: line 1 column 1 (char 0)"
+        },
+        {
+          "ts": 1776782496.44,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782496.657,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782498.874,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782503.121,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782511.121,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782511.123,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782511.375,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782513.625,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782517.926,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782525.926,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782525.927,
+          "level": "WARNING",
+          "node": "entity_extractor.py",
+          "msg": "EntityExtractor: LLM returned non-JSON response: Error: LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782674.217,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.9) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776782762.515,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1776782762.515,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Generating SQL for domain: compliance | Query: Identify Politically Exposed Persons (PEPs) whose transaction patterns exhibit a significant deviation from their historical norms, specifically focusing on a sudden increase in transactions with newly introduced high-risk 'instrument' types or a disproportionate use of 'payment_method's not previously utilized. Analyze if these deviations correlate with an elevated 'risk_score' or a change in 'kyc_status' within the preceding 90 days, suggesting potential attempts to bypass enhanced due diligence through complex financial maneuvers."
+        },
+        {
+          "ts": 1776782762.52,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Using custom SQL prompt for domain: compliance"
+        },
+        {
+          "ts": 1776782762.52,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782762.767,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782765.021,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782769.318,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782777.319,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782777.32,
+          "level": "WARNING",
+          "node": "SQL_GEN",
+          "msg": "SQL Generation guidance response for query: Identify Politically Exposed Persons (PEPs) whose transaction patterns exhibit a significant deviation from their historical norms, specifically focusing on a sudden increase in transactions with newly introduced high-risk 'instrument' types or a disproportionate use of 'payment_method's not previously utilized. Analyze if these deviations correlate with an elevated 'risk_score' or a change in 'kyc_status' within the preceding 90 days, suggesting potential attempts to bypass enhanced due diligence through complex financial maneuvers. | Msg: Error: LLM service rate limit exceeded after multi..."
+        },
+        {
+          "ts": 1776782777.321,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generator returned guidance instead of SQL: Error: LLM service rate limit exceeded after multi..."
+        }
+      ]
+    },
+    {
+      "mission_id": "COM002",
+      "mission_name": "Multi-Hop PEP & High-Risk Intermediary Transaction Networks",
+      "domain": "compliance",
+      "severity": "LOW",
+      "risk_score": 0,
+      "risk_factors": {},
+      "sql": null,
+      "data_count": 0,
+      "results": [],
+      "visualization_config": null,
+      "insight": null,
+      "recommendation": null,
+      "original_query": "Construct transaction graphs for users flagged with 'is_pep' = TRUE and a 'risk_level' of 'HIGH' or 'CRITICAL'. Analyze these graphs for multi-hop transaction chains (at least three levels deep) involving intermediary users who themselves have high 'risk_score' or are also PEPs. Focus on identifying if these layered transactions utilize obscure 'payment_method's or 'instrument's that are not typically associated with standard financial flows, potentially indicative of sanctions evasion or money laundering.",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1776782362.294,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1776782362.294,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Starting Intent Classification and Preprocessing in parallel for domain: compliance"
+        },
+        {
+          "ts": 1776782380.52,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classifying intent for domain: compliance | Query: Construct transaction graphs for users flagged with 'is_pep' = TRUE and a 'risk_level' of 'HIGH' or 'CRITICAL'. Analyze these graphs for multi-hop transaction chains (at least three levels deep) involving intermediary users who themselves have high 'risk_score' or are also PEPs. Focus on identifying if these layered transactions utilize obscure 'payment_method's or 'instrument's that are not typically associated with standard financial flows, potentially indicative of sanctions evasion or money laundering."
+        },
+        {
+          "ts": 1776782380.52,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782380.798,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782383.474,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782387.775,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782395.776,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782395.776,
+          "level": "ERROR",
+          "node": "INTENT",
+          "msg": "Intent classification error: Expecting value: line 1 column 1 (char 0)"
+        },
+        {
+          "ts": 1776782525.927,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782526.137,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782528.371,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782532.672,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782540.673,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782540.674,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782540.929,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782543.218,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782547.52,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782555.52,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782555.521,
+          "level": "WARNING",
+          "node": "entity_extractor.py",
+          "msg": "EntityExtractor: LLM returned non-JSON response: Error: LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782674.217,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.9) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776782777.321,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1776782777.321,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Generating SQL for domain: compliance | Query: Construct transaction graphs for users flagged with 'is_pep' = TRUE and a 'risk_level' of 'HIGH' or 'CRITICAL'. Analyze these graphs for multi-hop transaction chains (at least three levels deep) involving intermediary users who themselves have high 'risk_score' or are also PEPs. Focus on identifying if these layered transactions utilize obscure 'payment_method's or 'instrument's that are not typically associated with standard financial flows, potentially indicative of sanctions evasion or money laundering."
+        },
+        {
+          "ts": 1776782777.327,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Using custom SQL prompt for domain: compliance"
+        },
+        {
+          "ts": 1776782777.327,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782777.611,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782779.865,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782784.168,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782792.169,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782792.169,
+          "level": "WARNING",
+          "node": "SQL_GEN",
+          "msg": "SQL Generation guidance response for query: Construct transaction graphs for users flagged with 'is_pep' = TRUE and a 'risk_level' of 'HIGH' or 'CRITICAL'. Analyze these graphs for multi-hop transaction chains (at least three levels deep) involving intermediary users who themselves have high 'risk_score' or are also PEPs. Focus on identifying if these layered transactions utilize obscure 'payment_method's or 'instrument's that are not typically associated with standard financial flows, potentially indicative of sanctions evasion or money laundering. | Msg: Error: LLM service rate limit exceeded after multi..."
+        },
+        {
+          "ts": 1776782792.17,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generator returned guidance instead of SQL: Error: LLM service rate limit exceeded after multi..."
+        }
+      ]
+    },
+    {
+      "mission_id": "OPS001",
+      "mission_name": "Systemic Payment Failure Analysis by Instrument/Method",
+      "domain": "operations",
+      "severity": "LOW",
+      "risk_score": 0,
+      "risk_factors": {},
+      "sql": null,
+      "data_count": 0,
+      "results": [],
+      "visualization_config": null,
+      "insight": null,
+      "recommendation": null,
+      "original_query": "Investigate users who have experienced more than 10 failed transactions ('status' = 'FAILED') within a 7-day period, across a variety of 'payment_method's and 'instrument's. Analyze the 'flag_reason' for these failures to identify common patterns or specific error codes that are not isolated to individual users but suggest systemic processing issues, bottlenecks, or targeted attacks impacting specific payment infrastructure components.",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1776782362.294,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1776782362.294,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Starting Intent Classification and Preprocessing in parallel for domain: operations"
+        },
+        {
+          "ts": 1776782395.777,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classifying intent for domain: operations | Query: Investigate users who have experienced more than 10 failed transactions ('status' = 'FAILED') within a 7-day period, across a variety of 'payment_method's and 'instrument's. Analyze the 'flag_reason' for these failures to identify common patterns or specific error codes that are not isolated to individual users but suggest systemic processing issues, bottlenecks, or targeted attacks impacting specific payment infrastructure components."
+        },
+        {
+          "ts": 1776782395.778,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782396.071,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782399.858,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash-lite]. Snippet: ```json\n{\n  \"intent\": \"SELECT\",\n  \"confidence\": 0...."
+        },
+        {
+          "ts": 1776782399.859,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classification Result: SELECT (conf: 0.9) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776782555.521,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782555.831,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782558.067,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782562.368,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782570.368,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782570.37,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782570.78,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782573.02,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782577.318,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782585.318,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782585.319,
+          "level": "WARNING",
+          "node": "entity_extractor.py",
+          "msg": "EntityExtractor: LLM returned non-JSON response: Error: LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782674.217,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.9) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776782733.081,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1776782733.081,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Generating SQL for domain: operations | Query: Investigate users who have experienced more than 10 failed transactions ('status' = 'FAILED') within a 7-day period, across a variety of 'payment_method's and 'instrument's. Analyze the 'flag_reason' for these failures to identify common patterns or specific error codes that are not isolated to individual users but suggest systemic processing issues, bottlenecks, or targeted attacks impacting specific payment infrastructure components."
+        },
+        {
+          "ts": 1776782733.083,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Using custom SQL prompt for domain: operations"
+        },
+        {
+          "ts": 1776782733.083,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782733.293,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782735.524,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782739.826,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782747.826,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782747.827,
+          "level": "WARNING",
+          "node": "SQL_GEN",
+          "msg": "SQL Generation guidance response for query: Investigate users who have experienced more than 10 failed transactions ('status' = 'FAILED') within a 7-day period, across a variety of 'payment_method's and 'instrument's. Analyze the 'flag_reason' for these failures to identify common patterns or specific error codes that are not isolated to individual users but suggest systemic processing issues, bottlenecks, or targeted attacks impacting specific payment infrastructure components. | Msg: Error: LLM service rate limit exceeded after multi..."
+        },
+        {
+          "ts": 1776782747.827,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generator returned guidance instead of SQL: Error: LLM service rate limit exceeded after multi..."
+        }
+      ]
+    },
+    {
+      "mission_id": "OPS002",
+      "mission_name": "Cyber Threat Impact on User Transaction Velocity",
+      "domain": "operations",
+      "severity": "LOW",
+      "risk_score": 0,
+      "risk_factors": {},
+      "sql": null,
+      "data_count": 0,
+      "results": [],
+      "visualization_config": null,
+      "insight": null,
+      "recommendation": null,
+      "original_query": "Identify users who, after exhibiting a pattern of failed login attempts ('status' = 'FAILED' in 'login_events') from diverse locations and devices over a week, show a subsequent significant drop in their successful transaction rates or overall transaction volume for the following two weeks. This mission aims to identify potential long-term impacts of persistent cyber threats on user engagement and platform utilization.",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1776782362.294,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1776782362.295,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Starting Intent Classification and Preprocessing in parallel for domain: operations"
+        },
+        {
+          "ts": 1776782399.859,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classifying intent for domain: operations | Query: Identify users who, after exhibiting a pattern of failed login attempts ('status' = 'FAILED' in 'login_events') from diverse locations and devices over a week, show a subsequent significant drop in their successful transaction rates or overall transaction volume for the following two weeks. This mission aims to identify potential long-term impacts of persistent cyber threats on user engagement and platform utilization."
+        },
+        {
+          "ts": 1776782399.86,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782400.059,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782402.316,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782407.539,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash-lite]. Snippet: ```json\n{\n  \"intent\": \"SELECT\",\n  \"confidence\": 1...."
+        },
+        {
+          "ts": 1776782407.539,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classification Result: SELECT (conf: 1.0) | Needs Clarification: True"
+        },
+        {
+          "ts": 1776782585.319,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782585.606,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782587.865,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782592.165,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782600.166,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782600.168,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782600.46,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782602.713,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782607.014,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782615.014,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782615.014,
+          "level": "WARNING",
+          "node": "entity_extractor.py",
+          "msg": "EntityExtractor: LLM returned non-JSON response: Error: LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782674.217,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 1.0) | Needs Clarification: True"
+        },
+        {
+          "ts": 1776782792.171,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782792.391,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782794.593,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782798.856,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782806.856,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        }
+      ]
+    },
+    {
+      "mission_id": "RIS001",
+      "mission_name": "Demographic Concentration in High-Risk Investments",
+      "domain": "risk",
+      "severity": "LOW",
+      "risk_score": 0,
+      "risk_factors": {},
+      "sql": null,
+      "data_count": 0,
+      "results": [],
+      "visualization_config": null,
+      "insight": null,
+      "recommendation": null,
+      "original_query": "Analyze users across all 'age' segments who hold a disproportionate concentration of their total 'amount_usd' within 'instrument' types classified as having a 'risk_score' above 7.0. Specifically, identify if any 'age' segments show a statistically significant higher percentage of their portfolio invested in these high-risk instruments compared to others, indicating potential sector-specific or demographic-driven speculative behavior.",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1776782362.295,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1776782362.295,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Starting Intent Classification and Preprocessing in parallel for domain: risk"
+        },
+        {
+          "ts": 1776782407.54,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classifying intent for domain: risk | Query: Analyze users across all 'age' segments who hold a disproportionate concentration of their total 'amount_usd' within 'instrument' types classified as having a 'risk_score' above 7.0. Specifically, identify if any 'age' segments show a statistically significant higher percentage of their portfolio invested in these high-risk instruments compared to others, indicating potential sector-specific or demographic-driven speculative behavior."
+        },
+        {
+          "ts": 1776782407.54,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782407.76,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782410.006,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782414.297,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782422.297,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782422.298,
+          "level": "ERROR",
+          "node": "INTENT",
+          "msg": "Intent classification error: Expecting value: line 1 column 1 (char 0)"
+        },
+        {
+          "ts": 1776782615.014,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782615.308,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782617.561,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782621.862,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782629.862,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782629.864,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782630.156,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782632.409,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782636.712,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782644.712,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782644.713,
+          "level": "WARNING",
+          "node": "entity_extractor.py",
+          "msg": "EntityExtractor: LLM returned non-JSON response: Error: LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782674.217,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.9) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776782821.657,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1776782821.657,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Generating SQL for domain: risk | Query: Analyze users across all 'age' segments who hold a disproportionate concentration of their total 'amount_usd' within 'instrument' types classified as having a 'risk_score' above 7.0. Specifically, identify if any 'age' segments show a statistically significant higher percentage of their portfolio invested in these high-risk instruments compared to others, indicating potential sector-specific or demographic-driven speculative behavior."
+        },
+        {
+          "ts": 1776782821.66,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Using custom SQL prompt for domain: risk"
+        },
+        {
+          "ts": 1776782821.661,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782822.052,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782824.409,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782828.606,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782836.606,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782836.606,
+          "level": "WARNING",
+          "node": "SQL_GEN",
+          "msg": "SQL Generation guidance response for query: Analyze users across all 'age' segments who hold a disproportionate concentration of their total 'amount_usd' within 'instrument' types classified as having a 'risk_score' above 7.0. Specifically, identify if any 'age' segments show a statistically significant higher percentage of their portfolio invested in these high-risk instruments compared to others, indicating potential sector-specific or demographic-driven speculative behavior. | Msg: Error: LLM service rate limit exceeded after multi..."
+        },
+        {
+          "ts": 1776782836.607,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generator returned guidance instead of SQL: Error: LLM service rate limit exceeded after multi..."
+        }
+      ]
+    },
+    {
+      "mission_id": "RIS002",
+      "mission_name": "Youthful High-Risk Instrument Adoption Analysis",
+      "domain": "risk",
+      "severity": "LOW",
+      "risk_score": 0,
+      "risk_factors": {},
+      "sql": null,
+      "data_count": 0,
+      "results": [],
+      "visualization_config": null,
+      "insight": null,
+      "recommendation": null,
+      "original_query": "Identify users with a 'risk_score' below 3.0 and an 'age' between 18 and 30 who have recently (within the last 60 days) started transacting with 'instrument' types that have an average 'risk_score' above 8.0. Analyze the frequency, 'amount_usd', and 'txn_type' of these transactions to assess the user's understanding of the associated risks and potential for rapid portfolio deterioration.",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1776782362.295,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1776782362.295,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Starting Intent Classification and Preprocessing in parallel for domain: risk"
+        },
+        {
+          "ts": 1776782422.298,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classifying intent for domain: risk | Query: Identify users with a 'risk_score' below 3.0 and an 'age' between 18 and 30 who have recently (within the last 60 days) started transacting with 'instrument' types that have an average 'risk_score' above 8.0. Analyze the frequency, 'amount_usd', and 'txn_type' of these transactions to assess the user's understanding of the associated risks and potential for rapid portfolio deterioration."
+        },
+        {
+          "ts": 1776782422.299,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782422.682,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782424.947,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782429.251,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782437.251,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782437.251,
+          "level": "ERROR",
+          "node": "INTENT",
+          "msg": "Intent classification error: Expecting value: line 1 column 1 (char 0)"
+        },
+        {
+          "ts": 1776782644.713,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782645.004,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782647.202,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782651.455,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782659.455,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782659.457,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782659.687,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782661.928,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782666.2,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782674.2,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782674.2,
+          "level": "WARNING",
+          "node": "entity_extractor.py",
+          "msg": "EntityExtractor: LLM returned non-JSON response: Error: LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782674.217,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.9) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776782806.857,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1776782806.857,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Generating SQL for domain: risk | Query: Identify users with a 'risk_score' below 3.0 and an 'age' between 18 and 30 who have recently (within the last 60 days) started transacting with 'instrument' types that have an average 'risk_score' above 8.0. Analyze the frequency, 'amount_usd', and 'txn_type' of these transactions to assess the user's understanding of the associated risks and potential for rapid portfolio deterioration."
+        },
+        {
+          "ts": 1776782806.862,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Using custom SQL prompt for domain: risk"
+        },
+        {
+          "ts": 1776782806.862,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash-lite] generating response..."
+        },
+        {
+          "ts": 1776782807.072,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 2s (attempt 1)"
+        },
+        {
+          "ts": 1776782809.355,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 4s (attempt 2)"
+        },
+        {
+          "ts": 1776782813.656,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "LLM rate limit encountered, retrying in 8s (attempt 3)"
+        },
+        {
+          "ts": 1776782821.656,
+          "level": "ERROR",
+          "node": "llm.py",
+          "msg": "LLM service rate limit exceeded after multiple retries."
+        },
+        {
+          "ts": 1776782821.656,
+          "level": "WARNING",
+          "node": "SQL_GEN",
+          "msg": "SQL Generation guidance response for query: Identify users with a 'risk_score' below 3.0 and an 'age' between 18 and 30 who have recently (within the last 60 days) started transacting with 'instrument' types that have an average 'risk_score' above 8.0. Analyze the frequency, 'amount_usd', and 'txn_type' of these transactions to assess the user's understanding of the associated risks and potential for rapid portfolio deterioration. | Msg: Error: LLM service rate limit exceeded after multi..."
+        },
+        {
+          "ts": 1776782821.657,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generator returned guidance instead of SQL: Error: LLM service rate limit exceeded after multi..."
+        }
+      ]
+    }
+  ],
+  "clusters": [],
+  "narrative": {
+    "title": "Intelligence Brief",
+    "overall_risk": 0,
+    "overall_severity": "LOW",
+    "executive_summary": "Scan completed. Review individual findings for details.",
+    "threat_vectors": [],
+    "immediate_actions": [
+      "Review detection cards for specific findings"
+    ],
+    "monitoring_recommendations": [
+      "Continue scheduled scans"
+    ]
+  }
+}

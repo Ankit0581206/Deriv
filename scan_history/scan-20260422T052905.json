@@ -1,0 +1,1408 @@
+{
+  "scan_id": "scan-20260422T052905",
+  "timestamp": "2026-04-22T05:29:05.659967",
+  "stats": {
+    "total_missions": 8,
+    "critical_count": 0,
+    "high_count": 0,
+    "overall_risk": 0,
+    "overall_severity": "LOW"
+  },
+  "detections": [
+    {
+      "mission_id": "SEC-DOM-001",
+      "mission_name": "Dormant Account Reactivation Fraud",
+      "domain": "security",
+      "severity": "LOW",
+      "risk_score": 0,
+      "risk_factors": {},
+      "sql": "SELECT DISTINCT u.username\nFROM users u\nWHERE u.user_id IN (\n    -- Condition 1: Dormant accounts (no successful logins or transactions for the past 180 days)\n    SELECT du.user_id\n    FROM users du\n    WHERE du.user_id NOT IN (\n        SELECT le_dormant.user_id\n        FROM login_events le_dormant\n        WHERE UPPER(le_dormant.status) LIKE '%SUCCESS%'\n          AND le_dormant.created_at >= DATETIME('2026-04-22 11:13:00', '-180 days')\n    )\n    AND du.user_id NOT IN (\n        SELECT t_dormant.user_id\n        FROM transactions t_dormant\n        WHERE t_dormant.created_at >= DATETIME('2026-04-22 11:13:00', '-180 days')\n    )\n)\nAND u.user_id IN (\n    -- Conditions 2 & 3: Recent successful login from a new country, immediately followed by a large transaction\n    SELECT SuspiciousActivity.user_id\n    FROM (\n        -- Step 2a: Recent successful login from a 'country' never previously recorded for that user\n        SELECT\n            le_recent.user_id,\n            le_recent.created_at AS login_time\n        FROM login_events le_recent\n        WHERE UPPER(le_recent.status) LIKE '%SUCCESS%'\n          AND le_recent.created_at >= DATETIME('2026-04-22 11:13:00', '-24 hours')\n          AND NOT EXISTS (\n              SELECT 1\n              FROM login_events le_past\n              WHERE le_past.user_id = le_recent.user_id\n                AND le_past.country = le_recent.country\n                AND le_past.created_at < le_recent.created_at\n          )\n    ) AS SuspiciousLogin\n    JOIN (\n        -- Step 2b: Transaction with an 'amount_usd' exceeding 70% of their highest historical single transaction\n        SELECT\n            t_large.user_id,\n            t_large.amount_usd,\n            t_large.created_at AS transaction_time\n        FROM transactions t_large\n        JOIN (\n            SELECT\n                t_max.user_id,\n                MAX(t_max.amount_usd) AS max_historical_amount\n            FROM transactions t_max\n            GROUP BY t_max.user_id\n        ) AS UserMaxTxn ON t_large.user_id = UserMaxTxn.user_id\n        WHERE t_large.amount_usd > (UserMaxTxn.max_historical_amount * 0.70)\n          AND t_large.created_at >= DATETIME('2026-04-22 11:13:00', '-24 hours') -- Ensure the transaction is also recent\n    ) AS LargeTransaction\n    ON SuspiciousLogin.user_id = LargeTransaction.user_id\n    WHERE LargeTransaction.transaction_time > SuspiciousLogin.login_time\n      AND LargeTransaction.transaction_time <= DATETIME(SuspiciousLogin.login_time, '+1 day') -- \"immediately followed by\" implies within ~24h of login\n)\n;",
+      "data_count": 0,
+      "results": [],
+      "visualization_config": null,
+      "insight": "No data found to analyze.",
+      "recommendation": "Try broadening your search criteria or checking if the data for this period is available.",
+      "original_query": "Identify users whose accounts have been dormant (no successful logins or transactions for the past 180 days) but have recently (within 24 hours) experienced a successful login from a 'country' never previously recorded for that user, immediately followed by a transaction with an 'amount_usd' exceeding 70% of their highest historical single transaction.",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1776835665.081,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1776835665.081,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Starting Intent Classification and Preprocessing in parallel for domain: security"
+        },
+        {
+          "ts": 1776835665.083,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classifying intent for domain: security | Query: Identify users whose accounts have been dormant (no successful logins or transactions for the past 180 days) but have recently (within 24 hours) experienced a successful login from a 'country' never previously recorded for that user, immediately followed by a transaction with an 'amount_usd' exceeding 70% of their highest historical single transaction."
+        },
+        {
+          "ts": 1776835665.083,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776835665.089,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776835666.762,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 12 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776835669.678,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 19 before retrying (attempt 2/15)"
+        },
+        {
+          "ts": 1776835670.767,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"intent\": \"SELECT\",\n  \"confidence\": 0...."
+        },
+        {
+          "ts": 1776835670.768,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classification Result: SELECT (conf: 0.95) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776835680.425,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"resolved_entities\": {\n    \"login_even..."
+        },
+        {
+          "ts": 1776835680.425,
+          "level": "INFO",
+          "node": "entity_extractor.py",
+          "msg": "Final Extracted/Resolved Entities: {'login_events.status': 'SUCCESS'}"
+        },
+        {
+          "ts": 1776835680.425,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.95) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776835680.428,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1776835680.428,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Generating SQL for domain: security | Query: Identify users whose accounts have been dormant (no successful logins or transactions for the past 180 days) but have recently (within 24 hours) experienced a successful login from a 'country' never previously recorded for that user, immediately followed by a transaction with an 'amount_usd' exceeding 70% of their highest historical single transaction."
+        },
+        {
+          "ts": 1776835680.433,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Using custom SQL prompt for domain: security"
+        },
+        {
+          "ts": 1776835680.433,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776835697.124,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 1 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776835725.284,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: SELECT DISTINCT u.username\nFROM users u\nWHERE u.us..."
+        },
+        {
+          "ts": 1776835725.285,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "SQL Generated and cleaned: SELECT DISTINCT u.username\nFROM users u\nWHERE u.us..."
+        },
+        {
+          "ts": 1776835725.285,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generated: SELECT DISTINCT u.username\nFROM users u\nWHERE u.us..."
+        },
+        {
+          "ts": 1776835725.288,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [validate_sql]"
+        },
+        {
+          "ts": 1776835725.3,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [execute_query]"
+        },
+        {
+          "ts": 1776835725.3,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Executing SQL: SELECT DISTINCT u.username\nFROM users u\nWHERE u.user_id IN (\n    -- Condition 1: Dormant accounts (no successful logins or transactions for the past 180 days)\n    SELECT du.user_id\n    FROM users du\n    WHERE du.user_id NOT IN (\n        SELECT le_dormant.user_id\n        FROM login_events le_dormant\n        WHERE UPPER(le_dormant.status) LIKE '%SUCCESS%'\n          AND le_dormant.created_at >= DATETIME('2026-04-22 11:13:00', '-180 days')\n    )\n    AND du.user_id NOT IN (\n        SELECT t_dormant.user_id\n        FROM transactions t_dormant\n        WHERE t_dormant.created_at >= DATETIME('2026-04-22 11:13:00', '-180 days')\n    )\n)\nAND u.user_id IN (\n    -- Conditions 2 & 3: Recent successful login from a new country, immediately followed by a large transaction\n    SELECT SuspiciousActivity.user_id\n    FROM (\n        -- Step 2a: Recent successful login from a 'country' never previously recorded for that user\n        SELECT\n            le_recent.user_id,\n            le_recent.created_at AS login_time\n        FROM login_events le_recent\n        WHERE UPPER(le_recent.status) LIKE '%SUCCESS%'\n          AND le_recent.created_at >= DATETIME('2026-04-22 11:13:00', '-24 hours')\n          AND NOT EXISTS (\n              SELECT 1\n              FROM login_events le_past\n              WHERE le_past.user_id = le_recent.user_id\n                AND le_past.country = le_recent.country\n                AND le_past.created_at < le_recent.created_at\n          )\n    ) AS SuspiciousLogin\n    JOIN (\n        -- Step 2b: Transaction with an 'amount_usd' exceeding 70% of their highest historical single transaction\n        SELECT\n            t_large.user_id,\n            t_large.amount_usd,\n            t_large.created_at AS transaction_time\n        FROM transactions t_large\n        JOIN (\n            SELECT\n                t_max.user_id,\n                MAX(t_max.amount_usd) AS max_historical_amount\n            FROM transactions t_max\n            GROUP BY t_max.user_id\n        ) AS UserMaxTxn ON t_large.user_id = UserMaxTxn.user_id\n        WHERE t_large.amount_usd > (UserMaxTxn.max_historical_amount * 0.70)\n          AND t_large.created_at >= DATETIME('2026-04-22 11:13:00', '-24 hours') -- Ensure the transaction is also recent\n    ) AS LargeTransaction\n    ON SuspiciousLogin.user_id = LargeTransaction.user_id\n    WHERE LargeTransaction.transaction_time > SuspiciousLogin.login_time\n      AND LargeTransaction.transaction_time <= DATETIME(SuspiciousLogin.login_time, '+1 day') -- \"immediately followed by\" implies within ~24h of login\n)\n;"
+        },
+        {
+          "ts": 1776835725.301,
+          "level": "ERROR",
+          "node": "DB_EXEC",
+          "msg": "DATABASE EXECUTION ERROR: (sqlite3.OperationalError) no such column: u.username\n[SQL: SELECT DISTINCT u.username\nFROM users u\nWHERE u.user_id IN (\n    -- Condition 1: Dormant accounts (no successful logins or transactions for the past 180 days)\n    SELECT du.user_id\n    FROM users du\n    WHERE du.user_id NOT IN (\n        SELECT le_dormant.user_id\n        FROM login_events le_dormant\n        WHERE UPPER(le_dormant.status) LIKE '%SUCCESS%'\n          AND le_dormant.created_at >= DATETIME('2026-04-22 11:13:00', '-180 days')\n    )\n    AND du.user_id NOT IN (\n        SELECT t_dormant.user_id\n        FROM transactions t_dormant\n        WHERE t_dormant.created_at >= DATETIME('2026-04-22 11:13:00', '-180 days')\n    )\n)\nAND u.user_id IN (\n    -- Conditions 2 & 3: Recent successful login from a new country, immediately followed by a large transaction\n    SELECT SuspiciousActivity.user_id\n    FROM (\n        -- Step 2a: Recent successful login from a 'country' never previously recorded for that user\n        SELECT\n            le_recent.user_id,\n            le_recent.created_at AS login_time\n        FROM login_events le_recent\n        WHERE UPPER(le_recent.status) LIKE '%SUCCESS%'\n          AND le_recent.created_at >= DATETIME('2026-04-22 11:13:00', '-24 hours')\n          AND NOT EXISTS (\n              SELECT 1\n              FROM login_events le_past\n              WHERE le_past.user_id = le_recent.user_id\n                AND le_past.country = le_recent.country\n                AND le_past.created_at < le_recent.created_at\n          )\n    ) AS SuspiciousLogin\n    JOIN (\n        -- Step 2b: Transaction with an 'amount_usd' exceeding 70% of their highest historical single transaction\n        SELECT\n            t_large.user_id,\n            t_large.amount_usd,\n            t_large.created_at AS transaction_time\n        FROM transactions t_large\n        JOIN (\n            SELECT\n                t_max.user_id,\n                MAX(t_max.amount_usd) AS max_historical_amount\n            FROM transactions t_max\n            GROUP BY t_max.user_id\n        ) AS UserMaxTxn ON t_large.user_id = UserMaxTxn.user_id\n        WHERE t_large.amount_usd > (UserMaxTxn.max_historical_amount * 0.70)\n          AND t_large.created_at >= DATETIME('2026-04-22 11:13:00', '-24 hours') -- Ensure the transaction is also recent\n    ) AS LargeTransaction\n    ON SuspiciousLogin.user_id = LargeTransaction.user_id\n    WHERE LargeTransaction.transaction_time > SuspiciousLogin.login_time\n      AND LargeTransaction.transaction_time <= DATETIME(SuspiciousLogin.login_time, '+1 day') -- \"immediately followed by\" implies within ~24h of login\n)\n;]\n(Background on this error at: https://sqlalche.me/e/20/e3q8) | Query: SELECT DISTINCT u.username\nFROM users u\nWHERE u.user_id IN (\n    -- Condition 1: Dormant accounts (no successful logins or transactions for the past 180 days)\n    SELECT du.user_id\n    FROM users du\n    WHERE du.user_id NOT IN (\n        SELECT le_dormant.user_id\n        FROM login_events le_dormant\n        WHERE UPPER(le_dormant.status) LIKE '%SUCCESS%'\n          AND le_dormant.created_at >= DATETIME('2026-04-22 11:13:00', '-180 days')\n    )\n    AND du.user_id NOT IN (\n        SELECT t_dormant.user_id\n        FROM transactions t_dormant\n        WHERE t_dormant.created_at >= DATETIME('2026-04-22 11:13:00', '-180 days')\n    )\n)\nAND u.user_id IN (\n    -- Conditions 2 & 3: Recent successful login from a new country, immediately followed by a large transaction\n    SELECT SuspiciousActivity.user_id\n    FROM (\n        -- Step 2a: Recent successful login from a 'country' never previously recorded for that user\n        SELECT\n            le_recent.user_id,\n            le_recent.created_at AS login_time\n        FROM login_events le_recent\n        WHERE UPPER(le_recent.status) LIKE '%SUCCESS%'\n          AND le_recent.created_at >= DATETIME('2026-04-22 11:13:00', '-24 hours')\n          AND NOT EXISTS (\n              SELECT 1\n              FROM login_events le_past\n              WHERE le_past.user_id = le_recent.user_id\n                AND le_past.country = le_recent.country\n                AND le_past.created_at < le_recent.created_at\n          )\n    ) AS SuspiciousLogin\n    JOIN (\n        -- Step 2b: Transaction with an 'amount_usd' exceeding 70% of their highest historical single transaction\n        SELECT\n            t_large.user_id,\n            t_large.amount_usd,\n            t_large.created_at AS transaction_time\n        FROM transactions t_large\n        JOIN (\n            SELECT\n                t_max.user_id,\n                MAX(t_max.amount_usd) AS max_historical_amount\n            FROM transactions t_max\n            GROUP BY t_max.user_id\n        ) AS UserMaxTxn ON t_large.user_id = UserMaxTxn.user_id\n        WHERE t_large.amount_usd > (UserMaxTxn.max_historical_amount * 0.70)\n          AND t_large.created_at >= DATETIME('2026-04-22 11:13:00', '-24 hours') -- Ensure the transaction is also recent\n    ) AS LargeTransaction\n    ON SuspiciousLogin.user_id = LargeTransaction.user_id\n    WHERE LargeTransaction.transaction_time > SuspiciousLogin.login_time\n      AND LargeTransaction.transaction_time <= DATETIME(SuspiciousLogin.login_time, '+1 day') -- \"immediately followed by\" implies within ~24h of login\n)\n;"
+        },
+        {
+          "ts": 1776835725.302,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Query execution successful. Rows: 0"
+        },
+        {
+          "ts": 1776835725.303,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [insight_recommendation]"
+        },
+        {
+          "ts": 1776835725.303,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "Generating insights for 0 rows in domain: security"
+        },
+        {
+          "ts": 1776835725.303,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Insights generated successfully."
+        },
+        {
+          "ts": 1776835725.303,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [recommend_visualization]"
+        },
+        {
+          "ts": 1776835725.303,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "No results for visualization recommendation."
+        }
+      ]
+    },
+    {
+      "mission_id": "SEC-DOM-002",
+      "mission_name": "Brute Force Account Compromise via Email Enumeration",
+      "domain": "security",
+      "severity": "LOW",
+      "risk_score": 0,
+      "risk_factors": {},
+      "sql": "WITH FailedLoginWindows AS (\n    SELECT\n        le1.user_id,\n        le1.created_at AS window_start,\n        MAX(le2.created_at) AS window_end,\n        COUNT(le2.event_id) AS failed_count,\n        COUNT(DISTINCT le2.email_attempted) AS distinct_emails\n    FROM\n        login_events AS le1\n    JOIN\n        login_events AS le2 ON le1.user_id = le2.user_id\n    WHERE\n        UPPER(le1.status) LIKE '%FAILED%'\n        AND UPPER(le2.status) LIKE '%FAILED%'\n        AND le2.created_at BETWEEN le1.created_at AND datetime(le1.created_at, '+1 hour')\n    GROUP BY\n        le1.user_id, le1.created_at\n    HAVING\n        failed_count > 10\n        AND distinct_emails >= 5\n),\nUsersWithFailedBursts AS (\n    SELECT\n        user_id,\n        MAX(window_end) AS last_failed_in_burst_timestamp\n    FROM\n        FailedLoginWindows\n    GROUP BY\n        user_id\n)\nSELECT DISTINCT\n    u.full_name AS username\nFROM\n    UsersWithFailedBursts AS ufb\nJOIN\n    login_events AS success_le ON ufb.user_id = success_le.user_id\nJOIN\n    users AS u ON ufb.user_id = u.user_id\nWHERE\n    UPPER(success_le.status) LIKE '%SUCCESS%'\n    AND success_le.created_at BETWEEN ufb.last_failed_in_burst_timestamp AND datetime(ufb.last_failed_in_burst_timestamp, '+24 hours')\n    AND (\n        NOT EXISTS (\n            SELECT 1\n            FROM login_events AS prev_success\n            WHERE\n                prev_success.user_id = success_le.user_id\n                AND UPPER(prev_success.status) LIKE '%SUCCESS%'\n                AND prev_success.created_at < success_le.created_at\n                AND prev_success.device_type = success_le.device_type\n        )\n        OR\n        NOT EXISTS (\n            SELECT 1\n            FROM login_events AS prev_success\n            WHERE\n                prev_success.user_id = success_le.user_id\n                AND UPPER(prev_success.status) LIKE '%SUCCESS%'\n                AND prev_success.created_at < success_le.created_at\n                AND prev_success.city = success_le.city\n        )\n    );",
+      "data_count": 0,
+      "results": [],
+      "visualization_config": null,
+      "insight": "No data found to analyze.",
+      "recommendation": "Try broadening your search criteria or checking if the data for this period is available.",
+      "original_query": "Detect users who have experienced more than 10 failed login attempts within a 1-hour window, where at least 5 distinct 'email_attempted' values were used for the same 'user_id', followed by a successful login within the next 24 hours from a new 'device_type' or 'city' not previously associated with successful logins for that user.",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1776835665.081,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1776835665.081,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Starting Intent Classification and Preprocessing in parallel for domain: security"
+        },
+        {
+          "ts": 1776835665.083,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classifying intent for domain: security | Query: Detect users who have experienced more than 10 failed login attempts within a 1-hour window, where at least 5 distinct 'email_attempted' values were used for the same 'user_id', followed by a successful login within the next 24 hours from a new 'device_type' or 'city' not previously associated with successful logins for that user."
+        },
+        {
+          "ts": 1776835665.084,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776835665.091,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776835666.517,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 5 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776835669.676,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 16 before retrying (attempt 2/15)"
+        },
+        {
+          "ts": 1776835671.235,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"intent\": \"SELECT\",\n  \"confidence\": 1...."
+        },
+        {
+          "ts": 1776835671.235,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classification Result: SELECT (conf: 1.0) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776835700.244,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"resolved_entities\": {\n    \"login_even..."
+        },
+        {
+          "ts": 1776835700.245,
+          "level": "INFO",
+          "node": "entity_extractor.py",
+          "msg": "Final Extracted/Resolved Entities: {'login_events.status': 'FAILED'}"
+        },
+        {
+          "ts": 1776835700.245,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 1.0) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776835700.247,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1776835700.247,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Generating SQL for domain: security | Query: Detect users who have experienced more than 10 failed login attempts within a 1-hour window, where at least 5 distinct 'email_attempted' values were used for the same 'user_id', followed by a successful login within the next 24 hours from a new 'device_type' or 'city' not previously associated with successful logins for that user."
+        },
+        {
+          "ts": 1776835700.252,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Using custom SQL prompt for domain: security"
+        },
+        {
+          "ts": 1776835700.253,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776835729.381,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: WITH FailedLoginWindows AS (\n    SELECT\n        le..."
+        },
+        {
+          "ts": 1776835729.381,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "SQL Generated and cleaned: WITH FailedLoginWindows AS (\n    SELECT\n        le..."
+        },
+        {
+          "ts": 1776835729.381,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generated: WITH FailedLoginWindows AS (\n    SELECT\n        le..."
+        },
+        {
+          "ts": 1776835729.384,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [validate_sql]"
+        },
+        {
+          "ts": 1776835729.402,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [execute_query]"
+        },
+        {
+          "ts": 1776835729.402,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Executing SQL: WITH FailedLoginWindows AS (\n    SELECT\n        le1.user_id,\n        le1.created_at AS window_start,\n        MAX(le2.created_at) AS window_end,\n        COUNT(le2.event_id) AS failed_count,\n        COUNT(DISTINCT le2.email_attempted) AS distinct_emails\n    FROM\n        login_events AS le1\n    JOIN\n        login_events AS le2 ON le1.user_id = le2.user_id\n    WHERE\n        UPPER(le1.status) LIKE '%FAILED%'\n        AND UPPER(le2.status) LIKE '%FAILED%'\n        AND le2.created_at BETWEEN le1.created_at AND datetime(le1.created_at, '+1 hour')\n    GROUP BY\n        le1.user_id, le1.created_at\n    HAVING\n        failed_count > 10\n        AND distinct_emails >= 5\n),\nUsersWithFailedBursts AS (\n    SELECT\n        user_id,\n        MAX(window_end) AS last_failed_in_burst_timestamp\n    FROM\n        FailedLoginWindows\n    GROUP BY\n        user_id\n)\nSELECT DISTINCT\n    u.full_name AS username\nFROM\n    UsersWithFailedBursts AS ufb\nJOIN\n    login_events AS success_le ON ufb.user_id = success_le.user_id\nJOIN\n    users AS u ON ufb.user_id = u.user_id\nWHERE\n    UPPER(success_le.status) LIKE '%SUCCESS%'\n    AND success_le.created_at BETWEEN ufb.last_failed_in_burst_timestamp AND datetime(ufb.last_failed_in_burst_timestamp, '+24 hours')\n    AND (\n        NOT EXISTS (\n            SELECT 1\n            FROM login_events AS prev_success\n            WHERE\n                prev_success.user_id = success_le.user_id\n                AND UPPER(prev_success.status) LIKE '%SUCCESS%'\n                AND prev_success.created_at < success_le.created_at\n                AND prev_success.device_type = success_le.device_type\n        )\n        OR\n        NOT EXISTS (\n            SELECT 1\n            FROM login_events AS prev_success\n            WHERE\n                prev_success.user_id = success_le.user_id\n                AND UPPER(prev_success.status) LIKE '%SUCCESS%'\n                AND prev_success.created_at < success_le.created_at\n                AND prev_success.city = success_le.city\n        )\n    );"
+        },
+        {
+          "ts": 1776835729.527,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Execution complete. Returned 0 rows."
+        },
+        {
+          "ts": 1776835729.527,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Query execution successful. Rows: 0"
+        },
+        {
+          "ts": 1776835729.529,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [insight_recommendation]"
+        },
+        {
+          "ts": 1776835729.529,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "Generating insights for 0 rows in domain: security"
+        },
+        {
+          "ts": 1776835729.529,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Insights generated successfully."
+        },
+        {
+          "ts": 1776835729.529,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [recommend_visualization]"
+        },
+        {
+          "ts": 1776835729.529,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "No results for visualization recommendation."
+        }
+      ]
+    },
+    {
+      "mission_id": "COMP-DOM-001",
+      "mission_name": "High-Risk PEP Transaction Frequency Anomaly",
+      "domain": "compliance",
+      "severity": "LOW",
+      "risk_score": 0,
+      "risk_factors": {},
+      "sql": null,
+      "data_count": 0,
+      "results": [],
+      "visualization_config": null,
+      "insight": null,
+      "recommendation": null,
+      "original_query": "Identify 'is_pep' users with a 'risk_level' of 'HIGH' or 'CRITICAL' who exhibit an average monthly frequency of 'INTERNATIONAL_TRANSFER' or 'WITHDRAWAL' transactions that is more than 3 standard deviations above the average for non-PEP users of similar 'risk_level' and 'age' segment within the last 90 days.",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1776835665.082,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1776835665.082,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Starting Intent Classification and Preprocessing in parallel for domain: compliance"
+        },
+        {
+          "ts": 1776835665.084,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classifying intent for domain: compliance | Query: Identify 'is_pep' users with a 'risk_level' of 'HIGH' or 'CRITICAL' who exhibit an average monthly frequency of 'INTERNATIONAL_TRANSFER' or 'WITHDRAWAL' transactions that is more than 3 standard deviations above the average for non-PEP users of similar 'risk_level' and 'age' segment within the last 90 days."
+        },
+        {
+          "ts": 1776835665.084,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776835665.092,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776835666.758,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 7 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776835666.76,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 10 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776835669.677,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 18 before retrying (attempt 2/15)"
+        },
+        {
+          "ts": 1776835672.793,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"intent\": \"SELECT\",\n  \"confidence\": 1...."
+        },
+        {
+          "ts": 1776835672.793,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classification Result: SELECT (conf: 1.0) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776835677.658,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"resolved_entities\": {\n    \"users.is_p..."
+        },
+        {
+          "ts": 1776835677.658,
+          "level": "INFO",
+          "node": "entity_extractor.py",
+          "msg": "Final Extracted/Resolved Entities: {'users.is_pep': [1, 0], 'users.risk_level': ['HIGH', 'CRITICAL'], 'transactions.txn_type': ['TRANSFER', 'WITHDRAWAL'], 'users.age': 'segment'}"
+        },
+        {
+          "ts": 1776835677.659,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 1.0) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776835677.661,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1776835677.661,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Generating SQL for domain: compliance | Query: Identify 'is_pep' users with a 'risk_level' of 'HIGH' or 'CRITICAL' who exhibit an average monthly frequency of 'INTERNATIONAL_TRANSFER' or 'WITHDRAWAL' transactions that is more than 3 standard deviations above the average for non-PEP users of similar 'risk_level' and 'age' segment within the last 90 days."
+        },
+        {
+          "ts": 1776835677.667,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Using custom SQL prompt for domain: compliance"
+        },
+        {
+          "ts": 1776835677.667,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776835689.952,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: Error: SQLite does not have a built-in function to..."
+        },
+        {
+          "ts": 1776835689.952,
+          "level": "WARNING",
+          "node": "SQL_GEN",
+          "msg": "SQL Generation guidance response for query: Identify 'is_pep' users with a 'risk_level' of 'HIGH' or 'CRITICAL' who exhibit an average monthly frequency of 'INTERNATIONAL_TRANSFER' or 'WITHDRAWAL' transactions that is more than 3 standard deviations above the average for non-PEP users of similar 'risk_level' and 'age' segment within the last 90 days. | Msg: Error: SQLite does not have a built-in function to..."
+        },
+        {
+          "ts": 1776835689.953,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generator returned guidance instead of SQL: Error: SQLite does not have a built-in function to..."
+        }
+      ]
+    },
+    {
+      "mission_id": "COMP-DOM-002",
+      "mission_name": "Post-KYC Approval High-Risk Engagement Surge",
+      "domain": "compliance",
+      "severity": "LOW",
+      "risk_score": 0,
+      "risk_factors": {},
+      "sql": null,
+      "data_count": 0,
+      "results": [],
+      "visualization_config": null,
+      "insight": null,
+      "recommendation": null,
+      "original_query": "Identify users whose 'kyc_status' was updated to 'APPROVED' within the last 30 days, and subsequently (within 7 days of approval) initiated transactions involving 'instrument' types with an average 'risk_score' above 8.0, where the cumulative 'amount_usd' of these transactions exceeds their previous 90-day total by 200%.",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1776835665.082,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1776835665.082,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Starting Intent Classification and Preprocessing in parallel for domain: compliance"
+        },
+        {
+          "ts": 1776835665.084,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classifying intent for domain: compliance | Query: Identify users whose 'kyc_status' was updated to 'APPROVED' within the last 30 days, and subsequently (within 7 days of approval) initiated transactions involving 'instrument' types with an average 'risk_score' above 8.0, where the cumulative 'amount_usd' of these transactions exceeds their previous 90-day total by 200%."
+        },
+        {
+          "ts": 1776835665.085,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776835665.093,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776835666.761,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 11 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776835669.675,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 15 before retrying (attempt 2/15)"
+        },
+        {
+          "ts": 1776835677.903,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"intent\": \"SELECT\",\n  \"confidence\": 0...."
+        },
+        {
+          "ts": 1776835677.903,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classification Result: SELECT (conf: 0.9) | Needs Clarification: True"
+        },
+        {
+          "ts": 1776835694.555,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"resolved_entities\": {},\n  \"metadata\":..."
+        },
+        {
+          "ts": 1776835694.555,
+          "level": "INFO",
+          "node": "entity_extractor.py",
+          "msg": "Final Extracted/Resolved Entities: {}"
+        },
+        {
+          "ts": 1776835694.556,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.9) | Needs Clarification: True"
+        },
+        {
+          "ts": 1776835694.558,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776835704.696,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: I understand you're interested in identifying user..."
+        }
+      ]
+    },
+    {
+      "mission_id": "OPS-DOM-001",
+      "mission_name": "Successful Transaction Operational Bottlenecks",
+      "domain": "operations",
+      "severity": "LOW",
+      "risk_score": 0,
+      "risk_factors": {},
+      "sql": "SELECT\n    t.payment_method,\n    t.instrument,\n    CAST(SUM(CASE WHEN UPPER(t.flag_reason) NOT LIKE '%NONE%' AND UPPER(t.flag_reason) NOT LIKE '%AUTOMATICALLY_CLEARED%' THEN 1 ELSE 0 END) AS REAL) * 100.0 / COUNT(t.txn_id) AS flagged_percentage\nFROM\n    transactions t\nWHERE\n    UPPER(t.status) LIKE '%SUCCESS%'\n    AND t.created_at >= DATE('2026-04-22', '-30 days')\nGROUP BY\n    t.payment_method,\n    t.instrument\nHAVING\n    flagged_percentage > 20;",
+      "data_count": 0,
+      "results": [],
+      "visualization_config": null,
+      "insight": "No data found to analyze.",
+      "recommendation": "Try broadening your search criteria or checking if the data for this period is available.",
+      "original_query": "Analyze 'transactions' with 'status' = 'SUCCESS' to identify specific 'payment_method' and 'instrument' combinations that consistently generate a 'flag_reason' other than 'NONE' or 'AUTOMATICALLY_CLEARED' (e.g., 'MANUAL_REVIEW', 'EXCEPTION_HANDLED'). Focus on combinations where this occurs for more than 20% of successful transactions over a 30-day period, indicating potential bottlenecks or operational overhead.",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1776835665.082,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1776835665.082,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Starting Intent Classification and Preprocessing in parallel for domain: operations"
+        },
+        {
+          "ts": 1776835665.085,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classifying intent for domain: operations | Query: Analyze 'transactions' with 'status' = 'SUCCESS' to identify specific 'payment_method' and 'instrument' combinations that consistently generate a 'flag_reason' other than 'NONE' or 'AUTOMATICALLY_CLEARED' (e.g., 'MANUAL_REVIEW', 'EXCEPTION_HANDLED'). Focus on combinations where this occurs for more than 20% of successful transactions over a 30-day period, indicating potential bottlenecks or operational overhead."
+        },
+        {
+          "ts": 1776835665.085,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776835665.095,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776835666.515,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 2 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776835666.759,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 8 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776835669.676,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 17 before retrying (attempt 2/15)"
+        },
+        {
+          "ts": 1776835674.313,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"intent\": \"SELECT\",\n  \"confidence\": 1...."
+        },
+        {
+          "ts": 1776835674.313,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classification Result: SELECT (conf: 1.0) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776835695.963,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"resolved_entities\": {\n    \"transactio..."
+        },
+        {
+          "ts": 1776835695.964,
+          "level": "INFO",
+          "node": "entity_extractor.py",
+          "msg": "Final Extracted/Resolved Entities: {'transactions.status': 'COMPLETED'}"
+        },
+        {
+          "ts": 1776835695.964,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 1.0) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776835695.966,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1776835695.967,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Generating SQL for domain: operations | Query: Analyze 'transactions' with 'status' = 'SUCCESS' to identify specific 'payment_method' and 'instrument' combinations that consistently generate a 'flag_reason' other than 'NONE' or 'AUTOMATICALLY_CLEARED' (e.g., 'MANUAL_REVIEW', 'EXCEPTION_HANDLED'). Focus on combinations where this occurs for more than 20% of successful transactions over a 30-day period, indicating potential bottlenecks or operational overhead."
+        },
+        {
+          "ts": 1776835695.972,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Using custom SQL prompt for domain: operations"
+        },
+        {
+          "ts": 1776835695.973,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776835696.48,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 0 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776835708.222,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: SELECT\n    t.payment_method,\n    t.instrument,\n   ..."
+        },
+        {
+          "ts": 1776835708.222,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "SQL Generated and cleaned: SELECT\n    t.payment_method,\n    t.instrument,\n   ..."
+        },
+        {
+          "ts": 1776835708.222,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generated: SELECT\n    t.payment_method,\n    t.instrument,\n   ..."
+        },
+        {
+          "ts": 1776835708.224,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [validate_sql]"
+        },
+        {
+          "ts": 1776835708.231,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [execute_query]"
+        },
+        {
+          "ts": 1776835708.231,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Executing SQL: SELECT\n    t.payment_method,\n    t.instrument,\n    CAST(SUM(CASE WHEN UPPER(t.flag_reason) NOT LIKE '%NONE%' AND UPPER(t.flag_reason) NOT LIKE '%AUTOMATICALLY_CLEARED%' THEN 1 ELSE 0 END) AS REAL) * 100.0 / COUNT(t.txn_id) AS flagged_percentage\nFROM\n    transactions t\nWHERE\n    UPPER(t.status) LIKE '%SUCCESS%'\n    AND t.created_at >= DATE('2026-04-22', '-30 days')\nGROUP BY\n    t.payment_method,\n    t.instrument\nHAVING\n    flagged_percentage > 20;"
+        },
+        {
+          "ts": 1776835708.435,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Execution complete. Returned 0 rows."
+        },
+        {
+          "ts": 1776835708.435,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Query execution successful. Rows: 0"
+        },
+        {
+          "ts": 1776835708.436,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [insight_recommendation]"
+        },
+        {
+          "ts": 1776835708.436,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "Generating insights for 0 rows in domain: operations"
+        },
+        {
+          "ts": 1776835708.436,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Insights generated successfully."
+        },
+        {
+          "ts": 1776835708.436,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [recommend_visualization]"
+        },
+        {
+          "ts": 1776835708.436,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "No results for visualization recommendation."
+        }
+      ]
+    },
+    {
+      "mission_id": "OPS-DOM-002",
+      "mission_name": "Localized Login-to-Transaction Conversion Disparity",
+      "domain": "operations",
+      "severity": "LOW",
+      "risk_score": 0,
+      "risk_factors": {},
+      "sql": "WITH UserWeeklyLogins AS (\n    SELECT\n        le.user_id,\n        le.country,\n        le.city,\n        STRFTIME('%Y', le.created_at) AS login_year,\n        STRFTIME('%W', le.created_at) AS login_week_of_year,\n        COUNT(le.event_id) AS weekly_logins,\n        MIN(le.created_at) AS week_first_event_date,\n        MAX(le.created_at) AS week_last_event_date\n    FROM login_events le\n    WHERE le.status = 'SUCCESS'\n    GROUP BY 1, 2, 3, 4, 5\n    HAVING COUNT(le.event_id) > 10\n),\nConsecutiveHighLoginWeeks AS (\n    SELECT\n        user_id,\n        country,\n        city,\n        login_year,\n        login_week_of_year,\n        CAST(login_week_of_year AS INTEGER) -\n        ROW_NUMBER() OVER (PARTITION BY user_id, country, city, login_year ORDER BY login_week_of_year) AS week_group,\n        week_first_event_date,\n        week_last_event_date\n    FROM UserWeeklyLogins\n),\nUserPeriods AS (\n    SELECT\n        user_id,\n        country,\n        city,\n        MIN(week_first_event_date) AS period_start_date,\n        MAX(week_last_event_date) AS period_end_date,\n        COUNT(*) AS num_consecutive_weeks\n    FROM ConsecutiveHighLoginWeeks\n    GROUP BY\n        user_id,\n        country,\n        city,\n        login_year,\n        week_group\n    HAVING\n        num_consecutive_weeks >= 4\n)\nSELECT\n    u_main.user_id,\n    us.username,\n    u_main.country,\n    u_main.city\nFROM\n    UserPeriods u_main\nJOIN\n    users us ON u_main.user_id = us.user_id\nWHERE\n    (\n        SELECT SUM(t.amount_usd)\n        FROM transactions t\n        WHERE t.user_id = u_main.user_id\n          AND t.created_at BETWEEN u_main.period_start_date AND u_main.period_end_date\n    ) IS NOT NULL\nAND\n    (\n        SELECT SUM(t.amount_usd)\n        FROM transactions t\n        WHERE t.user_id = u_main.user_id\n          AND t.created_at BETWEEN u_main.period_start_date AND u_main.period_end_date\n    ) / CAST(u_main.num_consecutive_weeks AS REAL) <\n    (\n        (\n            SELECT\n                SUM(t_peer.amount_usd)\n            FROM\n                transactions t_peer\n            JOIN\n                login_events le_peer ON t_peer.user_id = le_peer.user_id\n            WHERE\n                t_peer.user_id != u_main.user_id\n                AND UPPER(le_peer.country) = UPPER(u_main.country)\n                AND UPPER(le_peer.city) = UPPER(u_main.city)\n                AND t_peer.created_at BETWEEN u_main.period_start_date AND u_main.period_end_date\n                AND le_peer.created_at BETWEEN u_main.period_start_date AND u_main.period_end_date\n                AND le_peer.status = 'SUCCESS'\n        ) / CAST(u_main.num_consecutive_weeks AS REAL)\n    ) * 0.20\nAND (\n        SELECT\n            SUM(t_peer.amount_usd)\n        FROM\n            transactions t_peer\n        JOIN\n            login_events le_peer ON t_peer.user_id = le_peer.user_id\n        WHERE\n            t_peer.user_id != u_main.user_id\n            AND UPPER(le_peer.country) = UPPER(u_main.country)\n            AND UPPER(le_peer.city) = UPPER(u_main.city)\n            AND t_peer.created_at BETWEEN u_main.period_start_date AND u_main.period_end_date\n            AND le_peer.created_at BETWEEN u_main.period_start_date AND u_main.period_end_date\n            AND le_peer.status = 'SUCCESS'\n    ) IS NOT NULL;",
+      "data_count": 0,
+      "results": [],
+      "visualization_config": null,
+      "insight": "No data found to analyze.",
+      "recommendation": "Try broadening your search criteria or checking if the data for this period is available.",
+      "original_query": "Identify users who have a consistently high frequency of successful logins (more than 10 logins per week for 4 consecutive weeks) from a single 'country' and 'city', but whose average weekly 'amount_usd' transacted is less than 20% of the average transaction volume for all other users logging in from the same 'country' and 'city' during the same period. This could indicate localized user friction or system issues impacting transaction completion.",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1776835665.082,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1776835665.082,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Starting Intent Classification and Preprocessing in parallel for domain: operations"
+        },
+        {
+          "ts": 1776835665.086,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classifying intent for domain: operations | Query: Identify users who have a consistently high frequency of successful logins (more than 10 logins per week for 4 consecutive weeks) from a single 'country' and 'city', but whose average weekly 'amount_usd' transacted is less than 20% of the average transaction volume for all other users logging in from the same 'country' and 'city' during the same period. This could indicate localized user friction or system issues impacting transaction completion."
+        },
+        {
+          "ts": 1776835665.086,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776835665.096,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776835666.516,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 3 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776835666.76,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 9 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776835674.102,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"intent\": \"SELECT\",\n  \"confidence\": 1...."
+        },
+        {
+          "ts": 1776835674.102,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classification Result: SELECT (conf: 1.0) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776835675.18,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"resolved_entities\": {\n    \"login_even..."
+        },
+        {
+          "ts": 1776835675.18,
+          "level": "INFO",
+          "node": "entity_extractor.py",
+          "msg": "Final Extracted/Resolved Entities: {'login_events.status': 'SUCCESS'}"
+        },
+        {
+          "ts": 1776835675.181,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 1.0) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776835675.183,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1776835675.183,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Generating SQL for domain: operations | Query: Identify users who have a consistently high frequency of successful logins (more than 10 logins per week for 4 consecutive weeks) from a single 'country' and 'city', but whose average weekly 'amount_usd' transacted is less than 20% of the average transaction volume for all other users logging in from the same 'country' and 'city' during the same period. This could indicate localized user friction or system issues impacting transaction completion."
+        },
+        {
+          "ts": 1776835675.188,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Using custom SQL prompt for domain: operations"
+        },
+        {
+          "ts": 1776835675.188,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776835675.791,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 20 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776835718.012,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: WITH UserWeeklyLogins AS (\n    SELECT\n        le.u..."
+        },
+        {
+          "ts": 1776835718.013,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "SQL Generated and cleaned: WITH UserWeeklyLogins AS (\n    SELECT\n        le.u..."
+        },
+        {
+          "ts": 1776835718.013,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generated: WITH UserWeeklyLogins AS (\n    SELECT\n        le.u..."
+        },
+        {
+          "ts": 1776835718.015,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [validate_sql]"
+        },
+        {
+          "ts": 1776835718.033,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [execute_query]"
+        },
+        {
+          "ts": 1776835718.033,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Executing SQL: WITH UserWeeklyLogins AS (\n    SELECT\n        le.user_id,\n        le.country,\n        le.city,\n        STRFTIME('%Y', le.created_at) AS login_year,\n        STRFTIME('%W', le.created_at) AS login_week_of_year,\n        COUNT(le.event_id) AS weekly_logins,\n        MIN(le.created_at) AS week_first_event_date,\n        MAX(le.created_at) AS week_last_event_date\n    FROM login_events le\n    WHERE le.status = 'SUCCESS'\n    GROUP BY 1, 2, 3, 4, 5\n    HAVING COUNT(le.event_id) > 10\n),\nConsecutiveHighLoginWeeks AS (\n    SELECT\n        user_id,\n        country,\n        city,\n        login_year,\n        login_week_of_year,\n        CAST(login_week_of_year AS INTEGER) -\n        ROW_NUMBER() OVER (PARTITION BY user_id, country, city, login_year ORDER BY login_week_of_year) AS week_group,\n        week_first_event_date,\n        week_last_event_date\n    FROM UserWeeklyLogins\n),\nUserPeriods AS (\n    SELECT\n        user_id,\n        country,\n        city,\n        MIN(week_first_event_date) AS period_start_date,\n        MAX(week_last_event_date) AS period_end_date,\n        COUNT(*) AS num_consecutive_weeks\n    FROM ConsecutiveHighLoginWeeks\n    GROUP BY\n        user_id,\n        country,\n        city,\n        login_year,\n        week_group\n    HAVING\n        num_consecutive_weeks >= 4\n)\nSELECT\n    u_main.user_id,\n    us.username,\n    u_main.country,\n    u_main.city\nFROM\n    UserPeriods u_main\nJOIN\n    users us ON u_main.user_id = us.user_id\nWHERE\n    (\n        SELECT SUM(t.amount_usd)\n        FROM transactions t\n        WHERE t.user_id = u_main.user_id\n          AND t.created_at BETWEEN u_main.period_start_date AND u_main.period_end_date\n    ) IS NOT NULL\nAND\n    (\n        SELECT SUM(t.amount_usd)\n        FROM transactions t\n        WHERE t.user_id = u_main.user_id\n          AND t.created_at BETWEEN u_main.period_start_date AND u_main.period_end_date\n    ) / CAST(u_main.num_consecutive_weeks AS REAL) <\n    (\n        (\n            SELECT\n                SUM(t_peer.amount_usd)\n            FROM\n                transactions t_peer\n            JOIN\n                login_events le_peer ON t_peer.user_id = le_peer.user_id\n            WHERE\n                t_peer.user_id != u_main.user_id\n                AND UPPER(le_peer.country) = UPPER(u_main.country)\n                AND UPPER(le_peer.city) = UPPER(u_main.city)\n                AND t_peer.created_at BETWEEN u_main.period_start_date AND u_main.period_end_date\n                AND le_peer.created_at BETWEEN u_main.period_start_date AND u_main.period_end_date\n                AND le_peer.status = 'SUCCESS'\n        ) / CAST(u_main.num_consecutive_weeks AS REAL)\n    ) * 0.20\nAND (\n        SELECT\n            SUM(t_peer.amount_usd)\n        FROM\n            transactions t_peer\n        JOIN\n            login_events le_peer ON t_peer.user_id = le_peer.user_id\n        WHERE\n            t_peer.user_id != u_main.user_id\n            AND UPPER(le_peer.country) = UPPER(u_main.country)\n            AND UPPER(le_peer.city) = UPPER(u_main.city)\n            AND t_peer.created_at BETWEEN u_main.period_start_date AND u_main.period_end_date\n            AND le_peer.created_at BETWEEN u_main.period_start_date AND u_main.period_end_date\n            AND le_peer.status = 'SUCCESS'\n    ) IS NOT NULL;"
+        },
+        {
+          "ts": 1776835718.034,
+          "level": "ERROR",
+          "node": "DB_EXEC",
+          "msg": "DATABASE EXECUTION ERROR: (sqlite3.OperationalError) no such column: us.username\n[SQL: WITH UserWeeklyLogins AS (\n    SELECT\n        le.user_id,\n        le.country,\n        le.city,\n        STRFTIME('%Y', le.created_at) AS login_year,\n        STRFTIME('%W', le.created_at) AS login_week_of_year,\n        COUNT(le.event_id) AS weekly_logins,\n        MIN(le.created_at) AS week_first_event_date,\n        MAX(le.created_at) AS week_last_event_date\n    FROM login_events le\n    WHERE le.status = 'SUCCESS'\n    GROUP BY 1, 2, 3, 4, 5\n    HAVING COUNT(le.event_id) > 10\n),\nConsecutiveHighLoginWeeks AS (\n    SELECT\n        user_id,\n        country,\n        city,\n        login_year,\n        login_week_of_year,\n        CAST(login_week_of_year AS INTEGER) -\n        ROW_NUMBER() OVER (PARTITION BY user_id, country, city, login_year ORDER BY login_week_of_year) AS week_group,\n        week_first_event_date,\n        week_last_event_date\n    FROM UserWeeklyLogins\n),\nUserPeriods AS (\n    SELECT\n        user_id,\n        country,\n        city,\n        MIN(week_first_event_date) AS period_start_date,\n        MAX(week_last_event_date) AS period_end_date,\n        COUNT(*) AS num_consecutive_weeks\n    FROM ConsecutiveHighLoginWeeks\n    GROUP BY\n        user_id,\n        country,\n        city,\n        login_year,\n        week_group\n    HAVING\n        num_consecutive_weeks >= 4\n)\nSELECT\n    u_main.user_id,\n    us.username,\n    u_main.country,\n    u_main.city\nFROM\n    UserPeriods u_main\nJOIN\n    users us ON u_main.user_id = us.user_id\nWHERE\n    (\n        SELECT SUM(t.amount_usd)\n        FROM transactions t\n        WHERE t.user_id = u_main.user_id\n          AND t.created_at BETWEEN u_main.period_start_date AND u_main.period_end_date\n    ) IS NOT NULL\nAND\n    (\n        SELECT SUM(t.amount_usd)\n        FROM transactions t\n        WHERE t.user_id = u_main.user_id\n          AND t.created_at BETWEEN u_main.period_start_date AND u_main.period_end_date\n    ) / CAST(u_main.num_consecutive_weeks AS REAL) <\n    (\n        (\n            SELECT\n                SUM(t_peer.amount_usd)\n            FROM\n                transactions t_peer\n            JOIN\n                login_events le_peer ON t_peer.user_id = le_peer.user_id\n            WHERE\n                t_peer.user_id != u_main.user_id\n                AND UPPER(le_peer.country) = UPPER(u_main.country)\n                AND UPPER(le_peer.city) = UPPER(u_main.city)\n                AND t_peer.created_at BETWEEN u_main.period_start_date AND u_main.period_end_date\n                AND le_peer.created_at BETWEEN u_main.period_start_date AND u_main.period_end_date\n                AND le_peer.status = 'SUCCESS'\n        ) / CAST(u_main.num_consecutive_weeks AS REAL)\n    ) * 0.20\nAND (\n        SELECT\n            SUM(t_peer.amount_usd)\n        FROM\n            transactions t_peer\n        JOIN\n            login_events le_peer ON t_peer.user_id = le_peer.user_id\n        WHERE\n            t_peer.user_id != u_main.user_id\n            AND UPPER(le_peer.country) = UPPER(u_main.country)\n            AND UPPER(le_peer.city) = UPPER(u_main.city)\n            AND t_peer.created_at BETWEEN u_main.period_start_date AND u_main.period_end_date\n            AND le_peer.created_at BETWEEN u_main.period_start_date AND u_main.period_end_date\n            AND le_peer.status = 'SUCCESS'\n    ) IS NOT NULL;]\n(Background on this error at: https://sqlalche.me/e/20/e3q8) | Query: WITH UserWeeklyLogins AS (\n    SELECT\n        le.user_id,\n        le.country,\n        le.city,\n        STRFTIME('%Y', le.created_at) AS login_year,\n        STRFTIME('%W', le.created_at) AS login_week_of_year,\n        COUNT(le.event_id) AS weekly_logins,\n        MIN(le.created_at) AS week_first_event_date,\n        MAX(le.created_at) AS week_last_event_date\n    FROM login_events le\n    WHERE le.status = 'SUCCESS'\n    GROUP BY 1, 2, 3, 4, 5\n    HAVING COUNT(le.event_id) > 10\n),\nConsecutiveHighLoginWeeks AS (\n    SELECT\n        user_id,\n        country,\n        city,\n        login_year,\n        login_week_of_year,\n        CAST(login_week_of_year AS INTEGER) -\n        ROW_NUMBER() OVER (PARTITION BY user_id, country, city, login_year ORDER BY login_week_of_year) AS week_group,\n        week_first_event_date,\n        week_last_event_date\n    FROM UserWeeklyLogins\n),\nUserPeriods AS (\n    SELECT\n        user_id,\n        country,\n        city,\n        MIN(week_first_event_date) AS period_start_date,\n        MAX(week_last_event_date) AS period_end_date,\n        COUNT(*) AS num_consecutive_weeks\n    FROM ConsecutiveHighLoginWeeks\n    GROUP BY\n        user_id,\n        country,\n        city,\n        login_year,\n        week_group\n    HAVING\n        num_consecutive_weeks >= 4\n)\nSELECT\n    u_main.user_id,\n    us.username,\n    u_main.country,\n    u_main.city\nFROM\n    UserPeriods u_main\nJOIN\n    users us ON u_main.user_id = us.user_id\nWHERE\n    (\n        SELECT SUM(t.amount_usd)\n        FROM transactions t\n        WHERE t.user_id = u_main.user_id\n          AND t.created_at BETWEEN u_main.period_start_date AND u_main.period_end_date\n    ) IS NOT NULL\nAND\n    (\n        SELECT SUM(t.amount_usd)\n        FROM transactions t\n        WHERE t.user_id = u_main.user_id\n          AND t.created_at BETWEEN u_main.period_start_date AND u_main.period_end_date\n    ) / CAST(u_main.num_consecutive_weeks AS REAL) <\n    (\n        (\n            SELECT\n                SUM(t_peer.amount_usd)\n            FROM\n                transactions t_peer\n            JOIN\n                login_events le_peer ON t_peer.user_id = le_peer.user_id\n            WHERE\n                t_peer.user_id != u_main.user_id\n                AND UPPER(le_peer.country) = UPPER(u_main.country)\n                AND UPPER(le_peer.city) = UPPER(u_main.city)\n                AND t_peer.created_at BETWEEN u_main.period_start_date AND u_main.period_end_date\n                AND le_peer.created_at BETWEEN u_main.period_start_date AND u_main.period_end_date\n                AND le_peer.status = 'SUCCESS'\n        ) / CAST(u_main.num_consecutive_weeks AS REAL)\n    ) * 0.20\nAND (\n        SELECT\n            SUM(t_peer.amount_usd)\n        FROM\n            transactions t_peer\n        JOIN\n            login_events le_peer ON t_peer.user_id = le_peer.user_id\n        WHERE\n            t_peer.user_id != u_main.user_id\n            AND UPPER(le_peer.country) = UPPER(u_main.country)\n            AND UPPER(le_peer.city) = UPPER(u_main.city)\n            AND t_peer.created_at BETWEEN u_main.period_start_date AND u_main.period_end_date\n            AND le_peer.created_at BETWEEN u_main.period_start_date AND u_main.period_end_date\n            AND le_peer.status = 'SUCCESS'\n    ) IS NOT NULL;"
+        },
+        {
+          "ts": 1776835718.034,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Query execution successful. Rows: 0"
+        },
+        {
+          "ts": 1776835718.035,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [insight_recommendation]"
+        },
+        {
+          "ts": 1776835718.035,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "Generating insights for 0 rows in domain: operations"
+        },
+        {
+          "ts": 1776835718.035,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Insights generated successfully."
+        },
+        {
+          "ts": 1776835718.035,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [recommend_visualization]"
+        },
+        {
+          "ts": 1776835718.035,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "No results for visualization recommendation."
+        }
+      ]
+    },
+    {
+      "mission_id": "RISK-DOM-001",
+      "mission_name": "Rapid Risk Score Escalation with Portfolio Diversification",
+      "domain": "risk",
+      "severity": "LOW",
+      "risk_score": 0,
+      "risk_factors": {},
+      "sql": null,
+      "data_count": 0,
+      "results": [],
+      "visualization_config": null,
+      "insight": null,
+      "recommendation": null,
+      "original_query": "Identify users whose 'risk_score' has increased by more than 50% within the last 30 days, and simultaneously, they have initiated transactions using more than 5 distinct 'currency' types or engaged in 'instrument' types with an average 'risk_score' above 9.0 that were not part of their portfolio prior to the risk score increase.",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1776835665.082,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1776835665.082,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Starting Intent Classification and Preprocessing in parallel for domain: risk"
+        },
+        {
+          "ts": 1776835665.086,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classifying intent for domain: risk | Query: Identify users whose 'risk_score' has increased by more than 50% within the last 30 days, and simultaneously, they have initiated transactions using more than 5 distinct 'currency' types or engaged in 'instrument' types with an average 'risk_score' above 9.0 that were not part of their portfolio prior to the risk score increase."
+        },
+        {
+          "ts": 1776835665.086,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776835665.098,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776835666.514,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 1 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776835666.516,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 4 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776835669.673,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 14 before retrying (attempt 2/15)"
+        },
+        {
+          "ts": 1776835675.793,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"intent\": \"SELECT\",\n  \"confidence\": 0...."
+        },
+        {
+          "ts": 1776835675.794,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classification Result: SELECT (conf: 0.8) | Needs Clarification: True"
+        },
+        {
+          "ts": 1776835684.116,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"resolved_entities\": {},\n  \"metadata\":..."
+        },
+        {
+          "ts": 1776835684.116,
+          "level": "INFO",
+          "node": "entity_extractor.py",
+          "msg": "Final Extracted/Resolved Entities: {}"
+        },
+        {
+          "ts": 1776835684.116,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.8) | Needs Clarification: True"
+        },
+        {
+          "ts": 1776835684.119,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776835692.438,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: I see you're looking to identify users based on a ..."
+        }
+      ]
+    },
+    {
+      "mission_id": "RISK-DOM-002",
+      "mission_name": "Account Status Enforcement Bypass",
+      "domain": "risk",
+      "severity": "LOW",
+      "risk_score": 0,
+      "risk_factors": {},
+      "sql": "SELECT DISTINCT u.user_id, u.username\nFROM users u\nWHERE (UPPER(u.account_status) LIKE '%SUSPENDED%' OR UPPER(u.account_status) LIKE '%CLOSED%')\n  AND (\n    EXISTS (\n      SELECT 1\n      FROM login_events le\n      WHERE le.user_id = u.user_id\n        AND UPPER(le.status) LIKE '%SUCCESS%'\n        AND le.created_at > u.updated_at\n        AND le.created_at <= DATE(u.updated_at, '+60 days')\n    )\n    OR\n    EXISTS (\n      SELECT 1\n      FROM transactions t\n      WHERE t.user_id = u.user_id\n        AND UPPER(t.status) LIKE '%SUCCESS%'\n        AND t.created_at > u.updated_at\n        AND t.created_at <= DATE(u.updated_at, '+60 days')\n    )\n  );",
+      "data_count": 0,
+      "results": [],
+      "visualization_config": null,
+      "insight": "No data found to analyze.",
+      "recommendation": "Try broadening your search criteria or checking if the data for this period is available.",
+      "original_query": "Identify users with an 'account_status' of 'SUSPENDED' or 'CLOSED' who have had successful login attempts ('status' = 'SUCCESS' in 'login_events') or successfully completed transactions ('status' = 'SUCCESS' in 'transactions') within the last 60 days of their account status change, indicating a potential bypass or system misconfiguration in enforcing account restrictions.",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1776835665.082,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1776835665.082,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Starting Intent Classification and Preprocessing in parallel for domain: risk"
+        },
+        {
+          "ts": 1776835665.087,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classifying intent for domain: risk | Query: Identify users with an 'account_status' of 'SUSPENDED' or 'CLOSED' who have had successful login attempts ('status' = 'SUCCESS' in 'login_events') or successfully completed transactions ('status' = 'SUCCESS' in 'transactions') within the last 60 days of their account status change, indicating a potential bypass or system misconfiguration in enforcing account restrictions."
+        },
+        {
+          "ts": 1776835665.087,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776835665.099,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776835666.756,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 6 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776835666.763,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 13 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776835674.433,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"resolved_entities\": {\n    \"users.acco..."
+        },
+        {
+          "ts": 1776835674.433,
+          "level": "INFO",
+          "node": "entity_extractor.py",
+          "msg": "Final Extracted/Resolved Entities: {'users.account_status': 'SUSPENDED', 'login_events.status': 'SUCCESS', 'transactions.status': 'COMPLETED'}"
+        },
+        {
+          "ts": 1776835678.993,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"intent\": \"SELECT\",\n  \"confidence\": 0...."
+        },
+        {
+          "ts": 1776835678.993,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classification Result: SELECT (conf: 0.9) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776835678.994,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.9) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776835678.996,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1776835678.996,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Generating SQL for domain: risk | Query: Identify users with an 'account_status' of 'SUSPENDED' or 'CLOSED' who have had successful login attempts ('status' = 'SUCCESS' in 'login_events') or successfully completed transactions ('status' = 'SUCCESS' in 'transactions') within the last 60 days of their account status change, indicating a potential bypass or system misconfiguration in enforcing account restrictions."
+        },
+        {
+          "ts": 1776835679.001,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Using custom SQL prompt for domain: risk"
+        },
+        {
+          "ts": 1776835679.001,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776835690.362,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: SELECT DISTINCT u.user_id, u.username\nFROM users u..."
+        },
+        {
+          "ts": 1776835690.362,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "SQL Generated and cleaned: SELECT DISTINCT u.user_id, u.username\nFROM users u..."
+        },
+        {
+          "ts": 1776835690.362,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generated: SELECT DISTINCT u.user_id, u.username\nFROM users u..."
+        },
+        {
+          "ts": 1776835690.364,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [validate_sql]"
+        },
+        {
+          "ts": 1776835690.374,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [execute_query]"
+        },
+        {
+          "ts": 1776835690.374,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Executing SQL: SELECT DISTINCT u.user_id, u.username\nFROM users u\nWHERE (UPPER(u.account_status) LIKE '%SUSPENDED%' OR UPPER(u.account_status) LIKE '%CLOSED%')\n  AND (\n    EXISTS (\n      SELECT 1\n      FROM login_events le\n      WHERE le.user_id = u.user_id\n        AND UPPER(le.status) LIKE '%SUCCESS%'\n        AND le.created_at > u.updated_at\n        AND le.created_at <= DATE(u.updated_at, '+60 days')\n    )\n    OR\n    EXISTS (\n      SELECT 1\n      FROM transactions t\n      WHERE t.user_id = u.user_id\n        AND UPPER(t.status) LIKE '%SUCCESS%'\n        AND t.created_at > u.updated_at\n        AND t.created_at <= DATE(u.updated_at, '+60 days')\n    )\n  );"
+        },
+        {
+          "ts": 1776835690.375,
+          "level": "ERROR",
+          "node": "DB_EXEC",
+          "msg": "DATABASE EXECUTION ERROR: (sqlite3.OperationalError) no such column: u.username\n[SQL: SELECT DISTINCT u.user_id, u.username\nFROM users u\nWHERE (UPPER(u.account_status) LIKE '%SUSPENDED%' OR UPPER(u.account_status) LIKE '%CLOSED%')\n  AND (\n    EXISTS (\n      SELECT 1\n      FROM login_events le\n      WHERE le.user_id = u.user_id\n        AND UPPER(le.status) LIKE '%SUCCESS%'\n        AND le.created_at > u.updated_at\n        AND le.created_at <= DATE(u.updated_at, '+60 days')\n    )\n    OR\n    EXISTS (\n      SELECT 1\n      FROM transactions t\n      WHERE t.user_id = u.user_id\n        AND UPPER(t.status) LIKE '%SUCCESS%'\n        AND t.created_at > u.updated_at\n        AND t.created_at <= DATE(u.updated_at, '+60 days')\n    )\n  );]\n(Background on this error at: https://sqlalche.me/e/20/e3q8) | Query: SELECT DISTINCT u.user_id, u.username\nFROM users u\nWHERE (UPPER(u.account_status) LIKE '%SUSPENDED%' OR UPPER(u.account_status) LIKE '%CLOSED%')\n  AND (\n    EXISTS (\n      SELECT 1\n      FROM login_events le\n      WHERE le.user_id = u.user_id\n        AND UPPER(le.status) LIKE '%SUCCESS%'\n        AND le.created_at > u.updated_at\n        AND le.created_at <= DATE(u.updated_at, '+60 days')\n    )\n    OR\n    EXISTS (\n      SELECT 1\n      FROM transactions t\n      WHERE t.user_id = u.user_id\n        AND UPPER(t.status) LIKE '%SUCCESS%'\n        AND t.created_at > u.updated_at\n        AND t.created_at <= DATE(u.updated_at, '+60 days')\n    )\n  );"
+        },
+        {
+          "ts": 1776835690.375,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Query execution successful. Rows: 0"
+        },
+        {
+          "ts": 1776835690.378,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [insight_recommendation]"
+        },
+        {
+          "ts": 1776835690.378,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "Generating insights for 0 rows in domain: risk"
+        },
+        {
+          "ts": 1776835690.378,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Insights generated successfully."
+        },
+        {
+          "ts": 1776835690.379,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [recommend_visualization]"
+        },
+        {
+          "ts": 1776835690.379,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "No results for visualization recommendation."
+        }
+      ]
+    }
+  ],
+  "clusters": [],
+  "narrative": {
+    "executive_summary": "Our latest live scan, encompassing 8 critical intelligence missions across security, compliance, risk, and operations domains, indicates a stable threat landscape with no high-severity threats or anomalies detected at this moment. All monitored missions currently report a low severity and zero risk score. While this is positive, a significant number of missions reported insufficient data for comprehensive analysis, which is a critical area requiring immediate attention to ensure our intelligence capabilities are fully operational and provide full visibility.",
+    "threat_vectors": [
+      {
+        "name": "Dormant Account Reactivation Fraud",
+        "severity": "LOW",
+        "description": "Our monitoring for this security vector found no active instances of dormant accounts being reactivated fraudulently in the current scan, though data availability for analysis needs verification."
+      },
+      {
+        "name": "High-Risk PEP Transaction Frequency Anomaly",
+        "severity": "LOW",
+        "description": "No anomalous transaction frequencies involving Politically Exposed Persons (PEPs) were detected during this live compliance scan."
+      },
+      {
+        "name": "Successful Transaction Operational Bottlenecks",
+        "severity": "LOW",
+        "description": "Analysis for operational bottlenecks in successful transactions showed no current issues, but comprehensive data for this mission was not fully available."
+      },
+      {
+        "name": "Rapid Risk Score Escalation with Portfolio Diversification",
+        "severity": "LOW",
+        "description": "No instances of rapid risk score escalation linked to portfolio diversification were identified in the latest risk assessment."
+      }
+    ],
+    "immediate_actions": [
+      "Prioritize Data Ingestion & Validation: Immediately investigate and rectify data ingestion pipelines for the 6 missions that reported 'No data found to analyze' to ensure all intelligence missions are fully operational.",
+      "Review Scan Scope & Frequency: Conduct an urgent review of the scope and frequency of all 8 intelligence missions to ensure they are adequately configured to capture relevant data and provide timely insights.",
+      "Validate Alert Thresholds: Verify that current alert thresholds for all missions are appropriately set to detect anomalies, especially for those that provided no insights or data counts."
+    ],
+    "monitoring_recommendations": [
+      "Continuous Data Health Monitoring: Implement continuous monitoring of data sources and ingestion pipelines for all 8 missions to prevent future data gaps and ensure complete visibility.",
+      "Enhanced Cross-Domain Correlation: Increase vigilance for potential cross-domain correlations, particularly as data availability improves, to identify emergent threat clusters that were not detectable in this scan.",
+      "Threat Intelligence Integration: Integrate external threat intelligence feeds more actively to proactively identify potential threats that might exploit the monitored vectors, even when internal scans show no immediate activity."
+    ],
+    "overall_risk": 0,
+    "overall_severity": "LOW",
+    "title": "Intelligence Brief - LIVE"
+  }
+}

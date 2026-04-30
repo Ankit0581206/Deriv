@@ -1,0 +1,2113 @@
+{
+  "scan_id": "scan-20260422T054327",
+  "timestamp": "2026-04-22T05:43:27.704429",
+  "stats": {
+    "total_missions": 8,
+    "critical_count": 0,
+    "high_count": 1,
+    "overall_risk": 72,
+    "overall_severity": "HIGH"
+  },
+  "detections": [
+    {
+      "mission_id": "SEC001_GEOHOP",
+      "mission_name": "Rapid Geo-Hopping Login Detection",
+      "domain": "security",
+      "severity": "LOW",
+      "risk_score": 0,
+      "risk_factors": {},
+      "sql": null,
+      "data_count": 0,
+      "results": [],
+      "visualization_config": null,
+      "insight": null,
+      "recommendation": null,
+      "original_query": "Identify users who have successful login events ('status' = 'SUCCESS') from two distinct 'country' locations, where the geographic distance between these countries is significant (e.g., different continents or more than 5000 km apart), and the time elapsed between these two successful logins for the same 'user_id' is less than 2 hours. This indicates potential account takeover.",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1776836488.208,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1776836488.21,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Starting Intent Classification and Preprocessing in parallel for domain: security"
+        },
+        {
+          "ts": 1776836488.211,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classifying intent for domain: security | Query: Identify users who have successful login events ('status' = 'SUCCESS') from two distinct 'country' locations, where the geographic distance between these countries is significant (e.g., different continents or more than 5000 km apart), and the time elapsed between these two successful logins for the same 'user_id' is less than 2 hours. This indicates potential account takeover."
+        },
+        {
+          "ts": 1776836488.211,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836488.216,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836489.682,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 0 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776836489.682,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 3 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776836492.27,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 8 before retrying (attempt 2/15)"
+        },
+        {
+          "ts": 1776836494.632,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 11 before retrying (attempt 2/15)"
+        },
+        {
+          "ts": 1776836503.224,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 16 before retrying (attempt 3/15)"
+        },
+        {
+          "ts": 1776836503.839,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"resolved_entities\": {\n    \"login_even..."
+        },
+        {
+          "ts": 1776836503.839,
+          "level": "INFO",
+          "node": "entity_extractor.py",
+          "msg": "Final Extracted/Resolved Entities: {'login_events.status': 'SUCCESS'}"
+        },
+        {
+          "ts": 1776836513.309,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"intent\": \"SELECT\",\n  \"confidence\": 0...."
+        },
+        {
+          "ts": 1776836513.31,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classification Result: SELECT (conf: 0.9) | Needs Clarification: True"
+        },
+        {
+          "ts": 1776836513.311,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.9) | Needs Clarification: True"
+        },
+        {
+          "ts": 1776836513.315,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836526.303,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: I understand you're interested in identifying pote..."
+        }
+      ]
+    },
+    {
+      "mission_id": "SEC002_UNUSUAL_TXN_AFTER_LOGIN",
+      "mission_name": "Post-Suspicious Login Transaction Anomaly",
+      "domain": "security",
+      "severity": "LOW",
+      "risk_score": 0,
+      "risk_factors": {},
+      "sql": "SELECT\n  u.user_id,\n  u.username,\n  le.event_id AS login_event_id,\n  le.created_at AS login_time,\n  le.country AS login_country,\n  le.device_type AS login_device_type,\n  t.txn_id AS transaction_id,\n  t.created_at AS transaction_time,\n  t.amount_usd,\n  t.txn_type,\n  u.risk_level\nFROM users AS u\nJOIN login_events AS le\n  ON u.user_id = le.user_id\nJOIN transactions AS t\n  ON u.user_id = t.user_id\nWHERE\n  UPPER(le.status) LIKE '%SUCCESS%' AND UPPER(u.risk_level) IN ('%MEDIUM%', '%LOW%') AND t.created_at BETWEEN le.created_at AND DATETIME(le.created_at, '+24 hours') AND UPPER(t.txn_type) IN ('%WITHDRAWAL%', '%INTERNATIONAL_TRANSFER%') AND t.amount_usd > (\n    SELECT\n      AVG(t_past.amount_usd) + 3 * SQRT(AVG(t_past.amount_usd * t_past.amount_usd) - (AVG(t_past.amount_usd) * AVG(t_past.amount_usd)))\n    FROM transactions AS t_past\n    WHERE\n      t_past.user_id = t.user_id AND t_past.created_at < t.created_at AND t_past.created_at >= DATETIME(t.created_at, '-90 days') AND t_past.amount_usd IS NOT NULL\n  ) AND (\n    NOT EXISTS (\n      SELECT 1\n      FROM login_events AS le_past_country\n      WHERE\n        le_past_country.user_id = le.user_id AND le_past_country.created_at < le.created_at AND le_past_country.created_at >= DATETIME(le.created_at, '-90 days') AND UPPER(le_past_country.status) LIKE '%SUCCESS%' AND UPPER(le_past_country.country) LIKE UPPER(le.country)\n    ) OR NOT EXISTS (\n      SELECT 1\n      FROM login_events AS le_past_device\n      WHERE\n        le_past_device.user_id = le.user_id AND le_past_device.created_at < le.created_at AND le_past_device.created_at >= DATETIME(le.created_at, '-90 days') AND UPPER(le_past_device.status) LIKE '%SUCCESS%' AND UPPER(le_past_device.device_type) LIKE UPPER(le.device_type)\n    )\n  );",
+      "data_count": 0,
+      "results": [],
+      "visualization_config": null,
+      "insight": "No data found to analyze.",
+      "recommendation": "Try broadening your search criteria or checking if the data for this period is available.",
+      "original_query": "Detect users whose successful login event ('status' = 'SUCCESS' in 'login_events') originates from a 'country' or 'device_type' not previously associated with their account within the last 90 days, and within 24 hours of this specific login, they initiate a 'WITHDRAWAL' or 'INTERNATIONAL_TRANSFER' 'txn_type' for an 'amount_usd' that is more than 3 standard deviations above their 90-day average transaction amount, especially if their 'risk_level' is 'MEDIUM' or 'LOW'.",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1776836488.21,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1776836488.21,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Starting Intent Classification and Preprocessing in parallel for domain: security"
+        },
+        {
+          "ts": 1776836488.211,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classifying intent for domain: security | Query: Detect users whose successful login event ('status' = 'SUCCESS' in 'login_events') originates from a 'country' or 'device_type' not previously associated with their account within the last 90 days, and within 24 hours of this specific login, they initiate a 'WITHDRAWAL' or 'INTERNATIONAL_TRANSFER' 'txn_type' for an 'amount_usd' that is more than 3 standard deviations above their 90-day average transaction amount, especially if their 'risk_level' is 'MEDIUM' or 'LOW'."
+        },
+        {
+          "ts": 1776836488.212,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836488.218,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836491.385,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 6 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776836491.778,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 7 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776836495.971,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"intent\": \"SELECT\",\n  \"confidence\": 1...."
+        },
+        {
+          "ts": 1776836495.972,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classification Result: SELECT (conf: 1.0) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776836502.22,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"resolved_entities\": {\n    \"login_even..."
+        },
+        {
+          "ts": 1776836502.22,
+          "level": "INFO",
+          "node": "entity_extractor.py",
+          "msg": "Final Extracted/Resolved Entities: {'login_events.status': 'SUCCESS', 'transactions.txn_type': 'WITHDRAWAL', 'users.risk_level': ['MEDIUM', 'LOW']}"
+        },
+        {
+          "ts": 1776836502.221,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 1.0) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776836502.223,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1776836502.223,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Generating SQL for domain: security | Query: Detect users whose successful login event ('status' = 'SUCCESS' in 'login_events') originates from a 'country' or 'device_type' not previously associated with their account within the last 90 days, and within 24 hours of this specific login, they initiate a 'WITHDRAWAL' or 'INTERNATIONAL_TRANSFER' 'txn_type' for an 'amount_usd' that is more than 3 standard deviations above their 90-day average transaction amount, especially if their 'risk_level' is 'MEDIUM' or 'LOW'."
+        },
+        {
+          "ts": 1776836502.225,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Using custom SQL prompt for domain: security"
+        },
+        {
+          "ts": 1776836502.226,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836502.731,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 15 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776836530.619,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: SELECT\n  u.user_id,\n  u.username,\n  le.event_id AS..."
+        },
+        {
+          "ts": 1776836530.62,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "SQL Generated and cleaned: SELECT\n  u.user_id,\n  u.username,\n  le.event_id AS..."
+        },
+        {
+          "ts": 1776836530.62,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generated: SELECT\n  u.user_id,\n  u.username,\n  le.event_id AS..."
+        },
+        {
+          "ts": 1776836530.621,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [validate_sql]"
+        },
+        {
+          "ts": 1776836530.626,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [execute_query]"
+        },
+        {
+          "ts": 1776836530.626,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Executing SQL: SELECT\n  u.user_id,\n  u.username,\n  le.event_id AS login_event_id,\n  le.created_at AS login_time,\n  le.country AS login_country,\n  le.device_type AS login_device_type,\n  t.txn_id AS transaction_id,\n  t.created_at AS transaction_time,\n  t.amount_usd,\n  t.txn_type,\n  u.risk_level\nFROM users AS u\nJOIN login_events AS le\n  ON u.user_id = le.user_id\nJOIN transactions AS t\n  ON u.user_id = t.user_id\nWHERE\n  UPPER(le.status) LIKE '%SUCCESS%' AND UPPER(u.risk_level) IN ('%MEDIUM%', '%LOW%') AND t.created_at BETWEEN le.created_at AND DATETIME(le.created_at, '+24 hours') AND UPPER(t.txn_type) IN ('%WITHDRAWAL%', '%INTERNATIONAL_TRANSFER%') AND t.amount_usd > (\n    SELECT\n      AVG(t_past.amount_usd) + 3 * SQRT(AVG(t_past.amount_usd * t_past.amount_usd) - (AVG(t_past.amount_usd) * AVG(t_past.amount_usd)))\n    FROM transactions AS t_past\n    WHERE\n      t_past.user_id = t.user_id AND t_past.created_at < t.created_at AND t_past.created_at >= DATETIME(t.created_at, '-90 days') AND t_past.amount_usd IS NOT NULL\n  ) AND (\n    NOT EXISTS (\n      SELECT 1\n      FROM login_events AS le_past_country\n      WHERE\n        le_past_country.user_id = le.user_id AND le_past_country.created_at < le.created_at AND le_past_country.created_at >= DATETIME(le.created_at, '-90 days') AND UPPER(le_past_country.status) LIKE '%SUCCESS%' AND UPPER(le_past_country.country) LIKE UPPER(le.country)\n    ) OR NOT EXISTS (\n      SELECT 1\n      FROM login_events AS le_past_device\n      WHERE\n        le_past_device.user_id = le.user_id AND le_past_device.created_at < le.created_at AND le_past_device.created_at >= DATETIME(le.created_at, '-90 days') AND UPPER(le_past_device.status) LIKE '%SUCCESS%' AND UPPER(le_past_device.device_type) LIKE UPPER(le.device_type)\n    )\n  );"
+        },
+        {
+          "ts": 1776836530.627,
+          "level": "ERROR",
+          "node": "DB_EXEC",
+          "msg": "DATABASE EXECUTION ERROR: (sqlite3.OperationalError) no such column: u.username\n[SQL: SELECT\n  u.user_id,\n  u.username,\n  le.event_id AS login_event_id,\n  le.created_at AS login_time,\n  le.country AS login_country,\n  le.device_type AS login_device_type,\n  t.txn_id AS transaction_id,\n  t.created_at AS transaction_time,\n  t.amount_usd,\n  t.txn_type,\n  u.risk_level\nFROM users AS u\nJOIN login_events AS le\n  ON u.user_id = le.user_id\nJOIN transactions AS t\n  ON u.user_id = t.user_id\nWHERE\n  UPPER(le.status) LIKE '%SUCCESS%' AND UPPER(u.risk_level) IN ('%MEDIUM%', '%LOW%') AND t.created_at BETWEEN le.created_at AND DATETIME(le.created_at, '+24 hours') AND UPPER(t.txn_type) IN ('%WITHDRAWAL%', '%INTERNATIONAL_TRANSFER%') AND t.amount_usd > (\n    SELECT\n      AVG(t_past.amount_usd) + 3 * SQRT(AVG(t_past.amount_usd * t_past.amount_usd) - (AVG(t_past.amount_usd) * AVG(t_past.amount_usd)))\n    FROM transactions AS t_past\n    WHERE\n      t_past.user_id = t.user_id AND t_past.created_at < t.created_at AND t_past.created_at >= DATETIME(t.created_at, '-90 days') AND t_past.amount_usd IS NOT NULL\n  ) AND (\n    NOT EXISTS (\n      SELECT 1\n      FROM login_events AS le_past_country\n      WHERE\n        le_past_country.user_id = le.user_id AND le_past_country.created_at < le.created_at AND le_past_country.created_at >= DATETIME(le.created_at, '-90 days') AND UPPER(le_past_country.status) LIKE '%SUCCESS%' AND UPPER(le_past_country.country) LIKE UPPER(le.country)\n    ) OR NOT EXISTS (\n      SELECT 1\n      FROM login_events AS le_past_device\n      WHERE\n        le_past_device.user_id = le.user_id AND le_past_device.created_at < le.created_at AND le_past_device.created_at >= DATETIME(le.created_at, '-90 days') AND UPPER(le_past_device.status) LIKE '%SUCCESS%' AND UPPER(le_past_device.device_type) LIKE UPPER(le.device_type)\n    )\n  );]\n(Background on this error at: https://sqlalche.me/e/20/e3q8) | Query: SELECT\n  u.user_id,\n  u.username,\n  le.event_id AS login_event_id,\n  le.created_at AS login_time,\n  le.country AS login_country,\n  le.device_type AS login_device_type,\n  t.txn_id AS transaction_id,\n  t.created_at AS transaction_time,\n  t.amount_usd,\n  t.txn_type,\n  u.risk_level\nFROM users AS u\nJOIN login_events AS le\n  ON u.user_id = le.user_id\nJOIN transactions AS t\n  ON u.user_id = t.user_id\nWHERE\n  UPPER(le.status) LIKE '%SUCCESS%' AND UPPER(u.risk_level) IN ('%MEDIUM%', '%LOW%') AND t.created_at BETWEEN le.created_at AND DATETIME(le.created_at, '+24 hours') AND UPPER(t.txn_type) IN ('%WITHDRAWAL%', '%INTERNATIONAL_TRANSFER%') AND t.amount_usd > (\n    SELECT\n      AVG(t_past.amount_usd) + 3 * SQRT(AVG(t_past.amount_usd * t_past.amount_usd) - (AVG(t_past.amount_usd) * AVG(t_past.amount_usd)))\n    FROM transactions AS t_past\n    WHERE\n      t_past.user_id = t.user_id AND t_past.created_at < t.created_at AND t_past.created_at >= DATETIME(t.created_at, '-90 days') AND t_past.amount_usd IS NOT NULL\n  ) AND (\n    NOT EXISTS (\n      SELECT 1\n      FROM login_events AS le_past_country\n      WHERE\n        le_past_country.user_id = le.user_id AND le_past_country.created_at < le.created_at AND le_past_country.created_at >= DATETIME(le.created_at, '-90 days') AND UPPER(le_past_country.status) LIKE '%SUCCESS%' AND UPPER(le_past_country.country) LIKE UPPER(le.country)\n    ) OR NOT EXISTS (\n      SELECT 1\n      FROM login_events AS le_past_device\n      WHERE\n        le_past_device.user_id = le.user_id AND le_past_device.created_at < le.created_at AND le_past_device.created_at >= DATETIME(le.created_at, '-90 days') AND UPPER(le_past_device.status) LIKE '%SUCCESS%' AND UPPER(le_past_device.device_type) LIKE UPPER(le.device_type)\n    )\n  );"
+        },
+        {
+          "ts": 1776836530.627,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Query execution successful. Rows: 0"
+        },
+        {
+          "ts": 1776836530.628,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [insight_recommendation]"
+        },
+        {
+          "ts": 1776836530.628,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "Generating insights for 0 rows in domain: security"
+        },
+        {
+          "ts": 1776836530.629,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Insights generated successfully."
+        },
+        {
+          "ts": 1776836530.629,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [recommend_visualization]"
+        },
+        {
+          "ts": 1776836530.629,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "No results for visualization recommendation."
+        }
+      ]
+    },
+    {
+      "mission_id": "COMP001_KYC_RISK_MISMATCH",
+      "mission_name": "High-Risk Users with Incomplete KYC",
+      "domain": "compliance",
+      "severity": "LOW",
+      "risk_score": 0,
+      "risk_factors": {},
+      "sql": "SELECT DISTINCT u.username\nFROM users u\nJOIN transactions t ON u.user_id = t.user_id\nWHERE\n    (UPPER(u.kyc_status) LIKE '%PENDING%' OR UPPER(u.kyc_status) LIKE '%FAILED%')\n    AND\n    (UPPER(u.risk_level) LIKE '%HIGH%' OR UPPER(u.risk_level) LIKE '%CRITICAL%' OR u.risk_score > 8.0)\n    AND\n    t.created_at >= strftime('%Y-%m-%d %H:%M:%S', date('2026-04-22', '-7 days'))\nGROUP BY u.user_id, u.username\nHAVING COUNT(t.txn_id) > 3;",
+      "data_count": 0,
+      "results": [],
+      "visualization_config": null,
+      "insight": "No data found to analyze.",
+      "recommendation": "Try broadening your search criteria or checking if the data for this period is available.",
+      "original_query": "Identify users with a 'kyc_status' of 'PENDING' or 'FAILED' who also have an assigned 'risk_level' of 'HIGH' or 'CRITICAL' or a 'risk_score' above 8.0, and have attempted more than 3 transactions (regardless of status) within the last 7 days. This highlights critical gaps in onboarding and ongoing compliance for high-risk individuals.",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1776836488.21,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1776836488.21,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Starting Intent Classification and Preprocessing in parallel for domain: compliance"
+        },
+        {
+          "ts": 1776836488.212,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classifying intent for domain: compliance | Query: Identify users with a 'kyc_status' of 'PENDING' or 'FAILED' who also have an assigned 'risk_level' of 'HIGH' or 'CRITICAL' or a 'risk_score' above 8.0, and have attempted more than 3 transactions (regardless of status) within the last 7 days. This highlights critical gaps in onboarding and ongoing compliance for high-risk individuals."
+        },
+        {
+          "ts": 1776836488.212,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836488.219,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836489.682,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 2 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776836493.515,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 10 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776836495.569,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 14 before retrying (attempt 2/15)"
+        },
+        {
+          "ts": 1776836503.791,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"intent\": \"SELECT\",\n  \"confidence\": 1...."
+        },
+        {
+          "ts": 1776836503.792,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classification Result: SELECT (conf: 1.0) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776836506.026,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"resolved_entities\": {\n    \"users.kyc_..."
+        },
+        {
+          "ts": 1776836506.028,
+          "level": "INFO",
+          "node": "entity_extractor.py",
+          "msg": "Final Extracted/Resolved Entities: {'users.kyc_status': 'PENDING', 'users.risk_level': ['HIGH', 'CRITICAL']}"
+        },
+        {
+          "ts": 1776836506.028,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 1.0) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776836506.029,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1776836506.029,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Generating SQL for domain: compliance | Query: Identify users with a 'kyc_status' of 'PENDING' or 'FAILED' who also have an assigned 'risk_level' of 'HIGH' or 'CRITICAL' or a 'risk_score' above 8.0, and have attempted more than 3 transactions (regardless of status) within the last 7 days. This highlights critical gaps in onboarding and ongoing compliance for high-risk individuals."
+        },
+        {
+          "ts": 1776836506.031,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Using custom SQL prompt for domain: compliance"
+        },
+        {
+          "ts": 1776836506.031,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836512.742,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 18 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776836526.193,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: SELECT DISTINCT u.username\nFROM users u\nJOIN trans..."
+        },
+        {
+          "ts": 1776836526.193,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "SQL Generated and cleaned: SELECT DISTINCT u.username\nFROM users u\nJOIN trans..."
+        },
+        {
+          "ts": 1776836526.193,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generated: SELECT DISTINCT u.username\nFROM users u\nJOIN trans..."
+        },
+        {
+          "ts": 1776836526.196,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [validate_sql]"
+        },
+        {
+          "ts": 1776836526.203,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [execute_query]"
+        },
+        {
+          "ts": 1776836526.203,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Executing SQL: SELECT DISTINCT u.username\nFROM users u\nJOIN transactions t ON u.user_id = t.user_id\nWHERE\n    (UPPER(u.kyc_status) LIKE '%PENDING%' OR UPPER(u.kyc_status) LIKE '%FAILED%')\n    AND\n    (UPPER(u.risk_level) LIKE '%HIGH%' OR UPPER(u.risk_level) LIKE '%CRITICAL%' OR u.risk_score > 8.0)\n    AND\n    t.created_at >= strftime('%Y-%m-%d %H:%M:%S', date('2026-04-22', '-7 days'))\nGROUP BY u.user_id, u.username\nHAVING COUNT(t.txn_id) > 3;"
+        },
+        {
+          "ts": 1776836526.204,
+          "level": "ERROR",
+          "node": "DB_EXEC",
+          "msg": "DATABASE EXECUTION ERROR: (sqlite3.OperationalError) no such column: u.username\n[SQL: SELECT DISTINCT u.username\nFROM users u\nJOIN transactions t ON u.user_id = t.user_id\nWHERE\n    (UPPER(u.kyc_status) LIKE '%PENDING%' OR UPPER(u.kyc_status) LIKE '%FAILED%')\n    AND\n    (UPPER(u.risk_level) LIKE '%HIGH%' OR UPPER(u.risk_level) LIKE '%CRITICAL%' OR u.risk_score > 8.0)\n    AND\n    t.created_at >= strftime('%Y-%m-%d %H:%M:%S', date('2026-04-22', '-7 days'))\nGROUP BY u.user_id, u.username\nHAVING COUNT(t.txn_id) > 3;]\n(Background on this error at: https://sqlalche.me/e/20/e3q8) | Query: SELECT DISTINCT u.username\nFROM users u\nJOIN transactions t ON u.user_id = t.user_id\nWHERE\n    (UPPER(u.kyc_status) LIKE '%PENDING%' OR UPPER(u.kyc_status) LIKE '%FAILED%')\n    AND\n    (UPPER(u.risk_level) LIKE '%HIGH%' OR UPPER(u.risk_level) LIKE '%CRITICAL%' OR u.risk_score > 8.0)\n    AND\n    t.created_at >= strftime('%Y-%m-%d %H:%M:%S', date('2026-04-22', '-7 days'))\nGROUP BY u.user_id, u.username\nHAVING COUNT(t.txn_id) > 3;"
+        },
+        {
+          "ts": 1776836526.205,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Query execution successful. Rows: 0"
+        },
+        {
+          "ts": 1776836526.206,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [insight_recommendation]"
+        },
+        {
+          "ts": 1776836526.206,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "Generating insights for 0 rows in domain: compliance"
+        },
+        {
+          "ts": 1776836526.206,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Insights generated successfully."
+        },
+        {
+          "ts": 1776836526.206,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [recommend_visualization]"
+        },
+        {
+          "ts": 1776836526.206,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "No results for visualization recommendation."
+        }
+      ]
+    },
+    {
+      "mission_id": "COMP002_PEP_NEW_METHOD_TXN",
+      "mission_name": "PEP High-Value Transactions with New Methods",
+      "domain": "compliance",
+      "severity": "LOW",
+      "risk_score": 0,
+      "risk_factors": {},
+      "sql": "WITH PEP_New_Method_Txns AS (\n    SELECT\n        t.user_id,\n        u.username,\n        t.amount_usd,\n        DATE(t.created_at) AS transaction_day,\n        t.payment_method,\n        t.instrument,\n        t.created_at\n    FROM\n        users u\n    JOIN\n        transactions t ON u.user_id = t.user_id\n    WHERE\n        u.is_pep = 1\n        AND (UPPER(t.txn_type) LIKE '%WITHDRAWAL%' OR UPPER(t.txn_type) LIKE '%INTERNATIONAL_TRANSFER%')\n        AND (UPPER(t.flag_reason) LIKE '%NONE%' OR UPPER(t.flag_reason) LIKE '%AUTOMATICALLY_CLEARED%')\n        AND t.created_at >= DATE('2026-04-22', '-60 days')\n        AND NOT EXISTS (\n            SELECT 1\n            FROM transactions t_prev\n            WHERE\n                t_prev.user_id = t.user_id\n                AND t_prev.created_at BETWEEN DATE(t.created_at, '-90 days') AND DATE(t.created_at, '-1 day')\n                AND (\n                    UPPER(t_prev.payment_method) = UPPER(t.payment_method)\n                    OR UPPER(t_prev.instrument) = UPPER(t.instrument)\n                )\n        )\n),\nDaily_PEP_Txn_Totals AS (\n    SELECT\n        user_id,\n        username,\n        transaction_day,\n        SUM(amount_usd) AS daily_total_amount_usd\n    FROM\n        PEP_New_Method_Txns\n    GROUP BY\n        user_id,\n        username,\n        transaction_day\n)\nSELECT\n    user_id,\n    username,\n    AVG(daily_total_amount_usd) AS average_daily_amount_usd\nFROM\n    Daily_PEP_Txn_Totals\nGROUP BY\n    user_id,\n    username\nHAVING\n    AVG(daily_total_amount_usd) > 10000;",
+      "data_count": 0,
+      "results": [],
+      "visualization_config": null,
+      "insight": "No data found to analyze.",
+      "recommendation": "Try broadening your search criteria or checking if the data for this period is available.",
+      "original_query": "Detect users flagged as 'is_pep' = TRUE whose average daily 'amount_usd' for 'WITHDRAWAL' or 'INTERNATIONAL_TRANSFER' transactions using a 'payment_method' or 'instrument' never previously used by that user in the last 90 days exceeds $10,000 USD, specifically focusing on transactions that have a 'flag_reason' of 'NONE' or 'AUTOMATICALLY_CLEARED' within the last 60 days. This monitors for PEPs attempting to bypass existing controls.",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1776836488.21,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1776836488.21,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Starting Intent Classification and Preprocessing in parallel for domain: compliance"
+        },
+        {
+          "ts": 1776836488.212,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classifying intent for domain: compliance | Query: Detect users flagged as 'is_pep' = TRUE whose average daily 'amount_usd' for 'WITHDRAWAL' or 'INTERNATIONAL_TRANSFER' transactions using a 'payment_method' or 'instrument' never previously used by that user in the last 90 days exceeds $10,000 USD, specifically focusing on transactions that have a 'flag_reason' of 'NONE' or 'AUTOMATICALLY_CLEARED' within the last 60 days. This monitors for PEPs attempting to bypass existing controls."
+        },
+        {
+          "ts": 1776836488.213,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836488.22,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836489.681,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 20 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776836492.832,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"intent\": \"SELECT\",\n  \"confidence\": 1...."
+        },
+        {
+          "ts": 1776836492.833,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classification Result: SELECT (conf: 1.0) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776836508.783,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"resolved_entities\": {\n    \"users.is_p..."
+        },
+        {
+          "ts": 1776836508.784,
+          "level": "INFO",
+          "node": "entity_extractor.py",
+          "msg": "Final Extracted/Resolved Entities: {'users.is_pep': '1', 'transactions.txn_type': 'WITHDRAWAL'}"
+        },
+        {
+          "ts": 1776836508.784,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 1.0) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776836508.786,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1776836508.786,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Generating SQL for domain: compliance | Query: Detect users flagged as 'is_pep' = TRUE whose average daily 'amount_usd' for 'WITHDRAWAL' or 'INTERNATIONAL_TRANSFER' transactions using a 'payment_method' or 'instrument' never previously used by that user in the last 90 days exceeds $10,000 USD, specifically focusing on transactions that have a 'flag_reason' of 'NONE' or 'AUTOMATICALLY_CLEARED' within the last 60 days. This monitors for PEPs attempting to bypass existing controls."
+        },
+        {
+          "ts": 1776836508.789,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Using custom SQL prompt for domain: compliance"
+        },
+        {
+          "ts": 1776836508.789,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836511.44,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 17 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776836550.75,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: WITH PEP_New_Method_Txns AS (\n    SELECT\n        t..."
+        },
+        {
+          "ts": 1776836550.751,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "SQL Generated and cleaned: WITH PEP_New_Method_Txns AS (\n    SELECT\n        t..."
+        },
+        {
+          "ts": 1776836550.751,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generated: WITH PEP_New_Method_Txns AS (\n    SELECT\n        t..."
+        },
+        {
+          "ts": 1776836550.753,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [validate_sql]"
+        },
+        {
+          "ts": 1776836550.763,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [execute_query]"
+        },
+        {
+          "ts": 1776836550.764,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Executing SQL: WITH PEP_New_Method_Txns AS (\n    SELECT\n        t.user_id,\n        u.username,\n        t.amount_usd,\n        DATE(t.created_at) AS transaction_day,\n        t.payment_method,\n        t.instrument,\n        t.created_at\n    FROM\n        users u\n    JOIN\n        transactions t ON u.user_id = t.user_id\n    WHERE\n        u.is_pep = 1\n        AND (UPPER(t.txn_type) LIKE '%WITHDRAWAL%' OR UPPER(t.txn_type) LIKE '%INTERNATIONAL_TRANSFER%')\n        AND (UPPER(t.flag_reason) LIKE '%NONE%' OR UPPER(t.flag_reason) LIKE '%AUTOMATICALLY_CLEARED%')\n        AND t.created_at >= DATE('2026-04-22', '-60 days')\n        AND NOT EXISTS (\n            SELECT 1\n            FROM transactions t_prev\n            WHERE\n                t_prev.user_id = t.user_id\n                AND t_prev.created_at BETWEEN DATE(t.created_at, '-90 days') AND DATE(t.created_at, '-1 day')\n                AND (\n                    UPPER(t_prev.payment_method) = UPPER(t.payment_method)\n                    OR UPPER(t_prev.instrument) = UPPER(t.instrument)\n                )\n        )\n),\nDaily_PEP_Txn_Totals AS (\n    SELECT\n        user_id,\n        username,\n        transaction_day,\n        SUM(amount_usd) AS daily_total_amount_usd\n    FROM\n        PEP_New_Method_Txns\n    GROUP BY\n        user_id,\n        username,\n        transaction_day\n)\nSELECT\n    user_id,\n    username,\n    AVG(daily_total_amount_usd) AS average_daily_amount_usd\nFROM\n    Daily_PEP_Txn_Totals\nGROUP BY\n    user_id,\n    username\nHAVING\n    AVG(daily_total_amount_usd) > 10000;"
+        },
+        {
+          "ts": 1776836550.765,
+          "level": "ERROR",
+          "node": "DB_EXEC",
+          "msg": "DATABASE EXECUTION ERROR: (sqlite3.OperationalError) no such column: u.username\n[SQL: WITH PEP_New_Method_Txns AS (\n    SELECT\n        t.user_id,\n        u.username,\n        t.amount_usd,\n        DATE(t.created_at) AS transaction_day,\n        t.payment_method,\n        t.instrument,\n        t.created_at\n    FROM\n        users u\n    JOIN\n        transactions t ON u.user_id = t.user_id\n    WHERE\n        u.is_pep = 1\n        AND (UPPER(t.txn_type) LIKE '%WITHDRAWAL%' OR UPPER(t.txn_type) LIKE '%INTERNATIONAL_TRANSFER%')\n        AND (UPPER(t.flag_reason) LIKE '%NONE%' OR UPPER(t.flag_reason) LIKE '%AUTOMATICALLY_CLEARED%')\n        AND t.created_at >= DATE('2026-04-22', '-60 days')\n        AND NOT EXISTS (\n            SELECT 1\n            FROM transactions t_prev\n            WHERE\n                t_prev.user_id = t.user_id\n                AND t_prev.created_at BETWEEN DATE(t.created_at, '-90 days') AND DATE(t.created_at, '-1 day')\n                AND (\n                    UPPER(t_prev.payment_method) = UPPER(t.payment_method)\n                    OR UPPER(t_prev.instrument) = UPPER(t.instrument)\n                )\n        )\n),\nDaily_PEP_Txn_Totals AS (\n    SELECT\n        user_id,\n        username,\n        transaction_day,\n        SUM(amount_usd) AS daily_total_amount_usd\n    FROM\n        PEP_New_Method_Txns\n    GROUP BY\n        user_id,\n        username,\n        transaction_day\n)\nSELECT\n    user_id,\n    username,\n    AVG(daily_total_amount_usd) AS average_daily_amount_usd\nFROM\n    Daily_PEP_Txn_Totals\nGROUP BY\n    user_id,\n    username\nHAVING\n    AVG(daily_total_amount_usd) > 10000;]\n(Background on this error at: https://sqlalche.me/e/20/e3q8) | Query: WITH PEP_New_Method_Txns AS (\n    SELECT\n        t.user_id,\n        u.username,\n        t.amount_usd,\n        DATE(t.created_at) AS transaction_day,\n        t.payment_method,\n        t.instrument,\n        t.created_at\n    FROM\n        users u\n    JOIN\n        transactions t ON u.user_id = t.user_id\n    WHERE\n        u.is_pep = 1\n        AND (UPPER(t.txn_type) LIKE '%WITHDRAWAL%' OR UPPER(t.txn_type) LIKE '%INTERNATIONAL_TRANSFER%')\n        AND (UPPER(t.flag_reason) LIKE '%NONE%' OR UPPER(t.flag_reason) LIKE '%AUTOMATICALLY_CLEARED%')\n        AND t.created_at >= DATE('2026-04-22', '-60 days')\n        AND NOT EXISTS (\n            SELECT 1\n            FROM transactions t_prev\n            WHERE\n                t_prev.user_id = t.user_id\n                AND t_prev.created_at BETWEEN DATE(t.created_at, '-90 days') AND DATE(t.created_at, '-1 day')\n                AND (\n                    UPPER(t_prev.payment_method) = UPPER(t.payment_method)\n                    OR UPPER(t_prev.instrument) = UPPER(t.instrument)\n                )\n        )\n),\nDaily_PEP_Txn_Totals AS (\n    SELECT\n        user_id,\n        username,\n        transaction_day,\n        SUM(amount_usd) AS daily_total_amount_usd\n    FROM\n        PEP_New_Method_Txns\n    GROUP BY\n        user_id,\n        username,\n        transaction_day\n)\nSELECT\n    user_id,\n    username,\n    AVG(daily_total_amount_usd) AS average_daily_amount_usd\nFROM\n    Daily_PEP_Txn_Totals\nGROUP BY\n    user_id,\n    username\nHAVING\n    AVG(daily_total_amount_usd) > 10000;"
+        },
+        {
+          "ts": 1776836550.765,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Query execution successful. Rows: 0"
+        },
+        {
+          "ts": 1776836550.766,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [insight_recommendation]"
+        },
+        {
+          "ts": 1776836550.766,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "Generating insights for 0 rows in domain: compliance"
+        },
+        {
+          "ts": 1776836550.766,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Insights generated successfully."
+        },
+        {
+          "ts": 1776836550.766,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [recommend_visualization]"
+        },
+        {
+          "ts": 1776836550.766,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "No results for visualization recommendation."
+        }
+      ]
+    },
+    {
+      "mission_id": "OPS001_LOGIN_FRICTION_DROP",
+      "mission_name": "Geographic Login Friction Leading to Transaction Drop-off",
+      "domain": "operations",
+      "severity": "LOW",
+      "risk_score": 0,
+      "risk_factors": {},
+      "sql": "WITH LoginFailureSuccessCounts AS (\n    SELECT\n        country,\n        device_type,\n        SUM(CASE WHEN UPPER(status) LIKE '%FAILED%' AND (UPPER(failure_reason) LIKE '%AUTHENTICATION_ERROR%' OR UPPER(failure_reason) LIKE '%TEMPORARY_LOCKOUT%') THEN 1 ELSE 0 END) AS failed_login_count,\n        SUM(CASE WHEN UPPER(status) LIKE '%SUCCESS%' THEN 1 ELSE 0 END) AS success_login_count\n    FROM login_events\n    GROUP BY country, device_type\n),\nLoginRatios AS (\n    SELECT\n        country,\n        device_type,\n        CAST(failed_login_count AS REAL) / NULLIF(success_login_count, 0) AS failure_success_ratio\n    FROM LoginFailureSuccessCounts\n),\nGlobalAverageRatio AS (\n    SELECT AVG(failure_success_ratio) AS global_avg_ratio\n    FROM LoginRatios\n    WHERE failure_success_ratio IS NOT NULL\n),\nHighRatioCombinations AS (\n    SELECT lr.country, lr.device_type\n    FROM LoginRatios lr, GlobalAverageRatio gar\n    WHERE lr.failure_success_ratio IS NOT NULL AND lr.failure_success_ratio >= (3 * gar.global_avg_ratio)\n),\nRelevantFailedLoginEvents AS (\n    SELECT\n        le.event_id,\n        le.user_id,\n        le.created_at AS failed_login_time,\n        le.country,\n        le.device_type\n    FROM login_events le\n    JOIN HighRatioCombinations hrc ON le.country = hrc.country AND le.device_type = hrc.device_type\n    WHERE UPPER(le.status) LIKE '%FAILED%'\n      AND (UPPER(le.failure_reason) LIKE '%AUTHENTICATION_ERROR%' OR UPPER(le.failure_reason) LIKE '%TEMPORARY_LOCKOUT%')\n),\nUserTransactionData AS (\n    SELECT\n        rfle.user_id,\n        rfle.failed_login_time,\n        rfle.country,\n        rfle.device_type,\n        -- Calculate 7-day sum of transactions before the failed login event\n        COALESCE((\n            SELECT SUM(t_pre.amount_usd)\n            FROM transactions t_pre\n            WHERE t_pre.user_id = rfle.user_id\n              AND t_pre.created_at BETWEEN DATETIME(rfle.failed_login_time, '-7 days') AND rfle.failed_login_time\n        ), 0.0) AS sum_amount_7d_pre,\n        -- Calculate 24-hour sum of transactions after the failed login event\n        COALESCE((\n            SELECT SUM(t_post.amount_usd)\n            FROM transactions t_post\n            WHERE t_post.user_id = rfle.user_id\n              AND t_post.created_at BETWEEN rfle.failed_login_time AND DATETIME(rfle.failed_login_time, '+1 day')\n        ), 0.0) AS sum_amount_24h_post\n    FROM RelevantFailedLoginEvents rfle\n)\nSELECT DISTINCT\n    utd.country,\n    utd.device_type\nFROM UserTransactionData utd\nWHERE\n    (utd.sum_amount_7d_pre / 7.0) > 0.0 -- Ensure there was a non-zero average to decrease from\n    AND utd.sum_amount_24h_post < (utd.sum_amount_7d_pre / 7.0) * 0.5;",
+      "data_count": 0,
+      "results": [],
+      "visualization_config": null,
+      "insight": "No data found to analyze.",
+      "recommendation": "Try broadening your search criteria or checking if the data for this period is available.",
+      "original_query": "Identify 'country' and 'device_type' combinations where the ratio of 'FAILED' login events with a 'failure_reason' of 'AUTHENTICATION_ERROR' or 'TEMPORARY_LOCKOUT' to 'SUCCESS' login events is significantly higher (e.g., 3x the global average) for distinct users, and these affected users subsequently experience a significant drop (e.g., 50% decrease compared to their 7-day average) in total 'amount_usd' transacted within the next 24 hours. This points to localized user experience issues or targeted attacks causing operational friction.",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1776836488.21,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1776836488.21,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Starting Intent Classification and Preprocessing in parallel for domain: operations"
+        },
+        {
+          "ts": 1776836488.213,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classifying intent for domain: operations | Query: Identify 'country' and 'device_type' combinations where the ratio of 'FAILED' login events with a 'failure_reason' of 'AUTHENTICATION_ERROR' or 'TEMPORARY_LOCKOUT' to 'SUCCESS' login events is significantly higher (e.g., 3x the global average) for distinct users, and these affected users subsequently experience a significant drop (e.g., 50% decrease compared to their 7-day average) in total 'amount_usd' transacted within the next 24 hours. This points to localized user experience issues or targeted attacks causing operational friction."
+        },
+        {
+          "ts": 1776836488.213,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836488.221,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836489.681,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 18 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776836494.089,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"intent\": \"SELECT\",\n  \"confidence\": 1...."
+        },
+        {
+          "ts": 1776836494.089,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classification Result: SELECT (conf: 1.0) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776836495.414,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 13 before retrying (attempt 2/15)"
+        },
+        {
+          "ts": 1776836527.291,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"resolved_entities\": {\n    \"login_even..."
+        },
+        {
+          "ts": 1776836527.292,
+          "level": "INFO",
+          "node": "entity_extractor.py",
+          "msg": "Final Extracted/Resolved Entities: {'login_events.status': ['FAILED', 'SUCCESS']}"
+        },
+        {
+          "ts": 1776836527.292,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 1.0) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776836527.295,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1776836527.295,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Generating SQL for domain: operations | Query: Identify 'country' and 'device_type' combinations where the ratio of 'FAILED' login events with a 'failure_reason' of 'AUTHENTICATION_ERROR' or 'TEMPORARY_LOCKOUT' to 'SUCCESS' login events is significantly higher (e.g., 3x the global average) for distinct users, and these affected users subsequently experience a significant drop (e.g., 50% decrease compared to their 7-day average) in total 'amount_usd' transacted within the next 24 hours. This points to localized user experience issues or targeted attacks causing operational friction."
+        },
+        {
+          "ts": 1776836527.301,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Using custom SQL prompt for domain: operations"
+        },
+        {
+          "ts": 1776836527.302,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836567.793,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 19 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776836597.145,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: WITH LoginFailureSuccessCounts AS (\n    SELECT\n   ..."
+        },
+        {
+          "ts": 1776836597.146,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "SQL Generated and cleaned: WITH LoginFailureSuccessCounts AS (\n    SELECT\n   ..."
+        },
+        {
+          "ts": 1776836597.146,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generated: WITH LoginFailureSuccessCounts AS (\n    SELECT\n   ..."
+        },
+        {
+          "ts": 1776836597.148,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [validate_sql]"
+        },
+        {
+          "ts": 1776836597.164,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [execute_query]"
+        },
+        {
+          "ts": 1776836597.164,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Executing SQL: WITH LoginFailureSuccessCounts AS (\n    SELECT\n        country,\n        device_type,\n        SUM(CASE WHEN UPPER(status) LIKE '%FAILED%' AND (UPPER(failure_reason) LIKE '%AUTHENTICATION_ERROR%' OR UPPER(failure_reason) LIKE '%TEMPORARY_LOCKOUT%') THEN 1 ELSE 0 END) AS failed_login_count,\n        SUM(CASE WHEN UPPER(status) LIKE '%SUCCESS%' THEN 1 ELSE 0 END) AS success_login_count\n    FROM login_events\n    GROUP BY country, device_type\n),\nLoginRatios AS (\n    SELECT\n        country,\n        device_type,\n        CAST(failed_login_count AS REAL) / NULLIF(success_login_count, 0) AS failure_success_ratio\n    FROM LoginFailureSuccessCounts\n),\nGlobalAverageRatio AS (\n    SELECT AVG(failure_success_ratio) AS global_avg_ratio\n    FROM LoginRatios\n    WHERE failure_success_ratio IS NOT NULL\n),\nHighRatioCombinations AS (\n    SELECT lr.country, lr.device_type\n    FROM LoginRatios lr, GlobalAverageRatio gar\n    WHERE lr.failure_success_ratio IS NOT NULL AND lr.failure_success_ratio >= (3 * gar.global_avg_ratio)\n),\nRelevantFailedLoginEvents AS (\n    SELECT\n        le.event_id,\n        le.user_id,\n        le.created_at AS failed_login_time,\n        le.country,\n        le.device_type\n    FROM login_events le\n    JOIN HighRatioCombinations hrc ON le.country = hrc.country AND le.device_type = hrc.device_type\n    WHERE UPPER(le.status) LIKE '%FAILED%'\n      AND (UPPER(le.failure_reason) LIKE '%AUTHENTICATION_ERROR%' OR UPPER(le.failure_reason) LIKE '%TEMPORARY_LOCKOUT%')\n),\nUserTransactionData AS (\n    SELECT\n        rfle.user_id,\n        rfle.failed_login_time,\n        rfle.country,\n        rfle.device_type,\n        -- Calculate 7-day sum of transactions before the failed login event\n        COALESCE((\n            SELECT SUM(t_pre.amount_usd)\n            FROM transactions t_pre\n            WHERE t_pre.user_id = rfle.user_id\n              AND t_pre.created_at BETWEEN DATETIME(rfle.failed_login_time, '-7 days') AND rfle.failed_login_time\n        ), 0.0) AS sum_amount_7d_pre,\n        -- Calculate 24-hour sum of transactions after the failed login event\n        COALESCE((\n            SELECT SUM(t_post.amount_usd)\n            FROM transactions t_post\n            WHERE t_post.user_id = rfle.user_id\n              AND t_post.created_at BETWEEN rfle.failed_login_time AND DATETIME(rfle.failed_login_time, '+1 day')\n        ), 0.0) AS sum_amount_24h_post\n    FROM RelevantFailedLoginEvents rfle\n)\nSELECT DISTINCT\n    utd.country,\n    utd.device_type\nFROM UserTransactionData utd\nWHERE\n    (utd.sum_amount_7d_pre / 7.0) > 0.0 -- Ensure there was a non-zero average to decrease from\n    AND utd.sum_amount_24h_post < (utd.sum_amount_7d_pre / 7.0) * 0.5;"
+        },
+        {
+          "ts": 1776836597.285,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Execution complete. Returned 0 rows."
+        },
+        {
+          "ts": 1776836597.285,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Query execution successful. Rows: 0"
+        },
+        {
+          "ts": 1776836597.286,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [insight_recommendation]"
+        },
+        {
+          "ts": 1776836597.287,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "Generating insights for 0 rows in domain: operations"
+        },
+        {
+          "ts": 1776836597.287,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Insights generated successfully."
+        },
+        {
+          "ts": 1776836597.287,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [recommend_visualization]"
+        },
+        {
+          "ts": 1776836597.287,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "No results for visualization recommendation."
+        }
+      ]
+    },
+    {
+      "mission_id": "OPS002_TXN_PENDING_SUCCESS_LATENCY",
+      "mission_name": "Non-Flagged Transaction Processing Latency",
+      "domain": "operations",
+      "severity": "LOW",
+      "risk_score": 0,
+      "risk_factors": {},
+      "sql": null,
+      "data_count": 0,
+      "results": [],
+      "visualization_config": null,
+      "insight": null,
+      "recommendation": null,
+      "original_query": "Detect 'txn_type' and 'instrument' combinations where the average time taken for transactions to transition from 'PENDING' to 'SUCCESS' consistently exceeds 6 hours for more than 10% of distinct users over a 7-day period, particularly if these transactions have a 'flag_reason' of 'NONE'. This indicates unflagged operational bottlenecks or slow external integrations.",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1776836488.21,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1776836488.21,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Starting Intent Classification and Preprocessing in parallel for domain: operations"
+        },
+        {
+          "ts": 1776836488.213,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classifying intent for domain: operations | Query: Detect 'txn_type' and 'instrument' combinations where the average time taken for transactions to transition from 'PENDING' to 'SUCCESS' consistently exceeds 6 hours for more than 10% of distinct users over a 7-day period, particularly if these transactions have a 'flag_reason' of 'NONE'. This indicates unflagged operational bottlenecks or slow external integrations."
+        },
+        {
+          "ts": 1776836488.214,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836488.222,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836489.682,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 1 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776836496.792,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"resolved_entities\": {\n    \"transactio..."
+        },
+        {
+          "ts": 1776836496.793,
+          "level": "INFO",
+          "node": "entity_extractor.py",
+          "msg": "Final Extracted/Resolved Entities: {'transactions.status': ['PENDING', 'COMPLETED'], 'transactions.flag_reason': ''}"
+        },
+        {
+          "ts": 1776836514.639,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"intent\": \"SELECT\",\n  \"confidence\": 0...."
+        },
+        {
+          "ts": 1776836514.64,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classification Result: SELECT (conf: 0.9) | Needs Clarification: True"
+        },
+        {
+          "ts": 1776836514.64,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.9) | Needs Clarification: True"
+        },
+        {
+          "ts": 1776836514.643,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836531.651,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: Would you like to see the average processing time ..."
+        }
+      ]
+    },
+    {
+      "mission_id": "RISK001_DORMANT_ACCOUNT_EXPLOIT",
+      "mission_name": "Dormant Account Activation and High-Risk Exploit",
+      "domain": "risk",
+      "severity": "HIGH",
+      "risk_score": 72,
+      "risk_factors": {
+        "affected_entities": {
+          "value": 56,
+          "score": 100,
+          "detail": "56 unique entities"
+        },
+        "dollar_exposure": {
+          "value": 606937.2399999999,
+          "score": 100,
+          "detail": "$606,937 exposure"
+        },
+        "velocity": {
+          "value": 56,
+          "score": 100,
+          "detail": "56 events"
+        },
+        "pep_involvement": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 PEP accounts"
+        },
+        "kyc_gaps": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 KYC gaps"
+        },
+        "severity_escalation": {
+          "value": "CRITICAL",
+          "score": 80,
+          "detail": "Base: CRITICAL"
+        }
+      },
+      "sql": "WITH UserActivityTimelines AS (\n    -- Combine all relevant timestamps (successful logins, all transactions) for dormancy detection.\n    -- This helps determine the \"last activity before login\" for identifying 90+ day gaps.\n    SELECT user_id, created_at FROM login_events WHERE UPPER(status) LIKE '%SUCCESS%'\n    UNION ALL\n    SELECT user_id, created_at FROM transactions\n),\nPotentialActivations AS (\n    -- Identify successful logins that occur after a 90+ day period of no activity.\n    -- This is the 'first successful login after this dormant period'.\n    SELECT\n        le.user_id,\n        le.created_at AS activation_login_time,\n        MAX(CASE WHEN uat.created_at < le.created_at THEN uat.created_at ELSE NULL END) AS last_activity_before_login\n    FROM login_events le\n    LEFT JOIN UserActivityTimelines uat ON le.user_id = uat.user_id\n    WHERE UPPER(le.status) LIKE '%SUCCESS%'\n    GROUP BY le.user_id, le.event_id, le.created_at\n    HAVING (last_activity_before_login IS NULL -- Handles the case where it's the very first activity for the user\n            OR JULIANDAY(le.created_at) - JULIANDAY(last_activity_before_login) > 90)\n),\nDormancyContext AS (\n    -- For each potential activation, define its dormancy context,\n    -- specifically the 90-day window for calculating the previous average amount.\n    SELECT\n        pa.user_id,\n        pa.activation_login_time,\n        pa.last_activity_before_login,\n        -- The 90-day average window ends on the 'last_activity_before_login' date.\n        -- It starts 89 days prior to that. If no prior activity, use a very old date.\n        CASE\n            WHEN pa.last_activity_before_login IS NOT NULL THEN DATE(pa.last_activity_before_login, '-89 days')\n            ELSE '1900-01-01' -- Far past date to ensure 0 average if no prior transactions\n        END AS avg_window_start,\n        pa.last_activity_before_login AS avg_window_end\n    FROM PotentialActivations pa\n),\nSuspiciousTransactions AS (\n    -- Find 'WITHDRAWAL' or 'TRANSFER' transactions that occur within 7 days\n    -- of the 'activation_login_time'.\n    SELECT\n        dc.user_id,\n        u.full_name, -- Using full_name as per actual schema, aliased to 'username' in final select\n        dc.activation_login_time,\n        dc.last_activity_before_login,\n        dc.avg_window_start,\n        dc.avg_window_end,\n        t.txn_id,\n        t.created_at AS txn_time,\n        t.amount_usd,\n        t.txn_type,\n        t.instrument,\n        t.payment_method\n    FROM DormancyContext dc\n    JOIN transactions t ON dc.user_id = t.user_id\n    JOIN users u ON dc.user_id = u.user_id -- To get user's full_name\n    WHERE JULIANDAY(t.created_at) >= JULIANDAY(dc.activation_login_time)\n      AND JULIANDAY(t.created_at) < JULIANDAY(dc.activation_login_time) + 7\n      AND (UPPER(t.txn_type) LIKE '%WITHDRAWAL%' OR UPPER(t.txn_type) LIKE '%TRANSFER%')\n),\nTransactionsWithPreviousAvg AS (\n    -- Calculate the average amount_usd for the user in the 90 days prior to the dormancy start.\n    SELECT\n        st.*,\n        COALESCE(\n            (SELECT AVG(t_prev.amount_usd)\n             FROM transactions t_prev\n             WHERE t_prev.user_id = st.user_id\n               AND t_prev.created_at >= st.avg_window_start\n               AND t_prev.created_at <= st.avg_window_end\n            ), 0\n        ) AS previous_90_day_avg_amount_usd\n    FROM SuspiciousTransactions st\n)\nSELECT\n    twpa.full_name AS username,\n    twpa.txn_id,\n    twpa.txn_time,\n    twpa.amount_usd,\n    twpa.txn_type,\n    twpa.instrument,\n    twpa.payment_method,\n    twpa.activation_login_time,\n    twpa.last_activity_before_login,\n    twpa.previous_90_day_avg_amount_usd\nFROM TransactionsWithPreviousAvg twpa\nWHERE twpa.amount_usd > (twpa.previous_90_day_avg_amount_usd * 5)\n  AND (\n        -- Check if the 'instrument' of the suspicious transaction was NOT seen in the last 180 days.\n        -- Handles both NULL and non-NULL instruments based on strict LIKE rule.\n        (\n            (twpa.instrument IS NULL AND NOT EXISTS ( -- If current instrument is NULL, check if NULL instrument was seen before\n                SELECT 1 FROM transactions t_hist WHERE t_hist.user_id = twpa.user_id\n                AND JULIANDAY(t_hist.created_at) >= JULIANDAY(twpa.txn_time) - 180\n                AND JULIANDAY(t_hist.created_at) < JULIANDAY(twpa.txn_time)\n                AND t_hist.instrument IS NULL\n            ))\n            OR\n            (twpa.instrument IS NOT NULL AND NOT EXISTS ( -- If current instrument is not NULL, check for similar instrument (partial match)\n                SELECT 1 FROM transactions t_hist WHERE t_hist.user_id = twpa.user_id\n                AND JULIANDAY(t_hist.created_at) >= JULIANDAY(twpa.txn_time) - 180\n                AND JULIANDAY(t_hist.created_at) < JULIANDAY(twpa.txn_time)\n                AND UPPER(t_hist.instrument) LIKE '%' || UPPER(twpa.instrument) || '%'\n            ))\n        )\n        OR\n        -- Check if the 'payment_method' of the suspicious transaction was NOT seen in the last 180 days.\n        -- Handles both NULL and non-NULL payment_methods based on strict LIKE rule.\n        (\n            (twpa.payment_method IS NULL AND NOT EXISTS ( -- If current payment_method is NULL, check if NULL payment_method was seen before\n                SELECT 1 FROM transactions t_hist WHERE t_hist.user_id = twpa.user_id\n                AND JULIANDAY(t_hist.created_at) >= JULIANDAY(twpa.txn_time) - 180\n                AND JULIANDAY(t_hist.created_at) < JULIANDAY(twpa.txn_time)\n                AND t_hist.payment_method IS NULL\n            ))\n            OR\n            (twpa.payment_method IS NOT NULL AND NOT EXISTS ( -- If current payment_method is not NULL, check for similar payment_method (partial match)\n                SELECT 1 FROM transactions t_hist WHERE t_hist.user_id = twpa.user_id\n                AND JULIANDAY(t_hist.created_at) >= JULIANDAY(twpa.txn_time) - 180\n                AND JULIANDAY(t_hist.created_at) < JULIANDAY(twpa.txn_time)\n                AND UPPER(t_hist.payment_method) LIKE '%' || UPPER(twpa.payment_method) || '%'\n            ))\n        )\n      );",
+      "data_count": 56,
+      "results": [
+        {
+          "username": "Jean Jones",
+          "txn_id": "TXN-020527",
+          "txn_time": "2025-10-28 18:59:08",
+          "amount_usd": 1871.22,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CARD",
+          "activation_login_time": "2025-10-25 05:32:15",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Sophie Patel",
+          "txn_id": "TXN-004925",
+          "txn_time": "2025-10-26 13:00:38",
+          "amount_usd": 3328.96,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CARD",
+          "activation_login_time": "2025-10-23 22:04:38",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Sophie Patel",
+          "txn_id": "TXN-042019",
+          "txn_time": "2025-10-28 10:37:36",
+          "amount_usd": 4891.01,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CRYPTO",
+          "activation_login_time": "2025-10-23 22:04:38",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Layla Sharma",
+          "txn_id": "TXN-033953",
+          "txn_time": "2025-10-25 06:38:38",
+          "amount_usd": 21450.45,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "EWALLET",
+          "activation_login_time": "2025-10-24 09:50:29",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Layla Sharma",
+          "txn_id": "TXN-034098",
+          "txn_time": "2025-10-29 22:17:30",
+          "amount_usd": 45508.54,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CRYPTO",
+          "activation_login_time": "2025-10-24 09:50:29",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Layla Sharma",
+          "txn_id": "TXN-032623",
+          "txn_time": "2025-10-30 12:15:22",
+          "amount_usd": 3221.82,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "BANK_TRANSFER",
+          "activation_login_time": "2025-10-24 09:50:29",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Robert Yamamoto",
+          "txn_id": "TXN-019074",
+          "txn_time": "2025-10-30 18:36:08",
+          "amount_usd": 4474.57,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CARD",
+          "activation_login_time": "2025-10-25 08:57:25",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "James Davis",
+          "txn_id": "TXN-039710",
+          "txn_time": "2025-11-02 12:50:56",
+          "amount_usd": 4627.89,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CARD",
+          "activation_login_time": "2025-10-27 08:33:21",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Pierre Davis",
+          "txn_id": "TXN-048976",
+          "txn_time": "2025-10-28 03:02:30",
+          "amount_usd": 18502.87,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "BANK_TRANSFER",
+          "activation_login_time": "2025-10-24 10:57:54",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Robert Weber",
+          "txn_id": "TXN-019690",
+          "txn_time": "2025-10-31 10:01:41",
+          "amount_usd": 614.25,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "BANK_TRANSFER",
+          "activation_login_time": "2025-10-26 00:54:16",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Khalid Tanaka",
+          "txn_id": "TXN-021813",
+          "txn_time": "2025-10-27 22:13:18",
+          "amount_usd": 1523.36,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "EWALLET",
+          "activation_login_time": "2025-10-26 16:03:10",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Lisa Martin",
+          "txn_id": "TXN-021401",
+          "txn_time": "2025-10-28 09:35:38",
+          "amount_usd": 8812.68,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "EWALLET",
+          "activation_login_time": "2025-10-24 10:38:59",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Lisa Martin",
+          "txn_id": "TXN-023348",
+          "txn_time": "2025-10-28 10:34:10",
+          "amount_usd": 4751.23,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "BANK_TRANSFER",
+          "activation_login_time": "2025-10-24 10:38:59",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Lisa Martin",
+          "txn_id": "TXN-026839",
+          "txn_time": "2025-10-28 18:44:06",
+          "amount_usd": 4795.7,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CARD",
+          "activation_login_time": "2025-10-24 10:38:59",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Hans Suzuki",
+          "txn_id": "TXN-038234",
+          "txn_time": "2025-10-29 20:41:26",
+          "amount_usd": 49550.22,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CRYPTO",
+          "activation_login_time": "2025-10-26 17:50:40",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Sophie Singh",
+          "txn_id": "TXN-021620",
+          "txn_time": "2025-10-27 09:51:16",
+          "amount_usd": 1759.63,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "EWALLET",
+          "activation_login_time": "2025-10-24 08:53:22",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Ahmed Laurent",
+          "txn_id": "TXN-036803",
+          "txn_time": "2025-10-27 03:30:51",
+          "amount_usd": 895.43,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "BANK_TRANSFER",
+          "activation_login_time": "2025-10-23 19:51:37",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Claire Schmidt",
+          "txn_id": "TXN-008028",
+          "txn_time": "2025-10-24 08:12:19",
+          "amount_usd": 1476.34,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CARD",
+          "activation_login_time": "2025-10-23 21:07:28",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Claire Schmidt",
+          "txn_id": "TXN-042840",
+          "txn_time": "2025-10-25 18:50:43",
+          "amount_usd": 25586.54,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CRYPTO",
+          "activation_login_time": "2025-10-23 21:07:28",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Mohammed Fischer",
+          "txn_id": "TXN-027051",
+          "txn_time": "2025-10-26 10:47:20",
+          "amount_usd": 3852.84,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CRYPTO",
+          "activation_login_time": "2025-10-24 08:10:02",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Lisa Brown",
+          "txn_id": "TXN-042121",
+          "txn_time": "2025-10-30 13:50:52",
+          "amount_usd": 1063.31,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CRYPTO",
+          "activation_login_time": "2025-10-24 03:00:27",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Yuki Weber",
+          "txn_id": "TXN-030032",
+          "txn_time": "2025-10-26 07:50:57",
+          "amount_usd": 36255.16,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "EWALLET",
+          "activation_login_time": "2025-10-25 03:16:32",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Raj Patel",
+          "txn_id": "TXN-023792",
+          "txn_time": "2025-10-26 20:03:24",
+          "amount_usd": 747.86,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CRYPTO",
+          "activation_login_time": "2025-10-24 23:17:15",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Raj Patel",
+          "txn_id": "TXN-024762",
+          "txn_time": "2025-10-31 16:55:17",
+          "amount_usd": 2947.59,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CARD",
+          "activation_login_time": "2025-10-24 23:17:15",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Sara Smith",
+          "txn_id": "TXN-025614",
+          "txn_time": "2025-10-29 10:06:50",
+          "amount_usd": 2248,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "EWALLET",
+          "activation_login_time": "2025-10-25 09:49:50",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Sara Smith",
+          "txn_id": "TXN-040584",
+          "txn_time": "2025-10-31 09:06:27",
+          "amount_usd": 39341.75,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "BANK_TRANSFER",
+          "activation_login_time": "2025-10-25 09:49:50",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Sara Fischer",
+          "txn_id": "TXN-010448",
+          "txn_time": "2025-10-25 16:57:14",
+          "amount_usd": 1858.79,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "BANK_TRANSFER",
+          "activation_login_time": "2025-10-25 02:51:15",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Jennifer Smith",
+          "txn_id": "TXN-005652",
+          "txn_time": "2025-10-26 08:47:13",
+          "amount_usd": 126.28,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CARD",
+          "activation_login_time": "2025-10-24 11:15:21",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Benjamin Mueller",
+          "txn_id": "TXN-013231",
+          "txn_time": "2025-10-27 20:31:13",
+          "amount_usd": 1515.39,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "BANK_TRANSFER",
+          "activation_login_time": "2025-10-26 04:39:17",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Mei Williams",
+          "txn_id": "TXN-001537",
+          "txn_time": "2025-10-29 12:18:04",
+          "amount_usd": 4309.92,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "BANK_TRANSFER",
+          "activation_login_time": "2025-10-24 06:30:04",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "James Sharma",
+          "txn_id": "TXN-020642",
+          "txn_time": "2025-10-28 09:07:09",
+          "amount_usd": 7726.53,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CARD",
+          "activation_login_time": "2025-10-27 04:58:40",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Anna Ibrahim",
+          "txn_id": "TXN-000029",
+          "txn_time": "2025-10-29 19:15:52",
+          "amount_usd": 30696.04,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "BANK_TRANSFER",
+          "activation_login_time": "2025-10-25 13:16:17",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Hana Lee",
+          "txn_id": "TXN-020172",
+          "txn_time": "2025-10-28 11:59:45",
+          "amount_usd": 3010.65,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "EWALLET",
+          "activation_login_time": "2025-10-24 11:53:47",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Fatima Yamamoto",
+          "txn_id": "TXN-041327",
+          "txn_time": "2025-10-29 10:48:27",
+          "amount_usd": 2473.72,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "BANK_TRANSFER",
+          "activation_login_time": "2025-10-23 23:03:00",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "David Zhang",
+          "txn_id": "TXN-008467",
+          "txn_time": "2025-10-24 14:18:20",
+          "amount_usd": 172.49,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CRYPTO",
+          "activation_login_time": "2025-10-23 23:31:46",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Pierre Abdullah",
+          "txn_id": "TXN-023733",
+          "txn_time": "2025-10-29 14:42:06",
+          "amount_usd": 1412.58,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "EWALLET",
+          "activation_login_time": "2025-10-24 19:13:53",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Ahmed Jones",
+          "txn_id": "TXN-011900",
+          "txn_time": "2025-10-29 14:17:26",
+          "amount_usd": 954.41,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "BANK_TRANSFER",
+          "activation_login_time": "2025-10-26 16:24:18",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Oliver Martin",
+          "txn_id": "TXN-047609",
+          "txn_time": "2025-10-28 12:56:32",
+          "amount_usd": 2398.63,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CRYPTO",
+          "activation_login_time": "2025-10-25 08:48:48",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Sophie Lee",
+          "txn_id": "TXN-049002",
+          "txn_time": "2025-10-26 09:08:40",
+          "amount_usd": 3358.88,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "EWALLET",
+          "activation_login_time": "2025-10-24 18:51:19",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Sophie Lee",
+          "txn_id": "TXN-008954",
+          "txn_time": "2025-10-31 12:13:08",
+          "amount_usd": 2119.37,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CRYPTO",
+          "activation_login_time": "2025-10-24 18:51:19",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Robert Nakamura",
+          "txn_id": "TXN-013077",
+          "txn_time": "2025-10-26 04:35:03",
+          "amount_usd": 133381.32,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CRYPTO",
+          "activation_login_time": "2025-10-23 21:19:34",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Isabella Chen",
+          "txn_id": "TXN-023811",
+          "txn_time": "2025-10-24 09:31:09",
+          "amount_usd": 4302.45,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "BANK_TRANSFER",
+          "activation_login_time": "2025-10-24 07:15:35",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Marie Hassan",
+          "txn_id": "TXN-006555",
+          "txn_time": "2025-10-28 16:22:11",
+          "amount_usd": 11825.25,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CARD",
+          "activation_login_time": "2025-10-24 14:10:06",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Marie Hassan",
+          "txn_id": "TXN-008882",
+          "txn_time": "2025-10-30 18:22:56",
+          "amount_usd": 19400.55,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "BANK_TRANSFER",
+          "activation_login_time": "2025-10-24 14:10:06",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Marie Hassan",
+          "txn_id": "TXN-030468",
+          "txn_time": "2025-10-31 09:01:52",
+          "amount_usd": 2703.5,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CRYPTO",
+          "activation_login_time": "2025-10-24 14:10:06",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Claire Chen",
+          "txn_id": "TXN-010367",
+          "txn_time": "2025-10-26 11:30:05",
+          "amount_usd": 1599.54,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CARD",
+          "activation_login_time": "2025-10-24 04:47:23",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Isabella Dubois",
+          "txn_id": "TXN-001146",
+          "txn_time": "2025-10-31 17:35:00",
+          "amount_usd": 4077.76,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "EWALLET",
+          "activation_login_time": "2025-10-25 16:09:32",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Jean Johnson",
+          "txn_id": "TXN-000226",
+          "txn_time": "2025-10-24 23:28:26",
+          "amount_usd": 30937.57,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CARD",
+          "activation_login_time": "2025-10-24 11:55:13",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Jean Johnson",
+          "txn_id": "TXN-035848",
+          "txn_time": "2025-10-26 12:19:38",
+          "amount_usd": 2994.98,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CRYPTO",
+          "activation_login_time": "2025-10-24 11:55:13",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Sophia Weber",
+          "txn_id": "TXN-035737",
+          "txn_time": "2025-10-24 22:44:42",
+          "amount_usd": 4057.56,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "EWALLET",
+          "activation_login_time": "2025-10-24 04:05:16",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Benjamin Ahmed",
+          "txn_id": "TXN-000606",
+          "txn_time": "2025-11-05 14:01:52",
+          "amount_usd": 17274.94,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CRYPTO",
+          "activation_login_time": "2025-10-31 00:14:56",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Ananya Zhang",
+          "txn_id": "TXN-021447",
+          "txn_time": "2025-10-29 13:19:34",
+          "amount_usd": 4236.83,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "BANK_TRANSFER",
+          "activation_login_time": "2025-10-29 08:44:43",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Jennifer Ahmed",
+          "txn_id": "TXN-022926",
+          "txn_time": "2025-10-30 15:55:52",
+          "amount_usd": 4261.01,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "BANK_TRANSFER",
+          "activation_login_time": "2025-10-25 05:47:32",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "James Abdullah",
+          "txn_id": "TXN-016035",
+          "txn_time": "2025-10-28 04:24:24",
+          "amount_usd": 2242.36,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "BANK_TRANSFER",
+          "activation_login_time": "2025-10-25 13:04:45",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Ananya Sharma",
+          "txn_id": "TXN-039655",
+          "txn_time": "2025-10-29 18:00:04",
+          "amount_usd": 2231.88,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "CRYPTO",
+          "activation_login_time": "2025-10-23 21:44:57",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        },
+        {
+          "username": "Omar Taylor",
+          "txn_id": "TXN-047362",
+          "txn_time": "2025-10-27 08:58:52",
+          "amount_usd": 5176.84,
+          "txn_type": "WITHDRAWAL",
+          "instrument": null,
+          "payment_method": "EWALLET",
+          "activation_login_time": "2025-10-24 04:31:49",
+          "last_activity_before_login": null,
+          "previous_90_day_avg_amount_usd": 0
+        }
+      ],
+      "visualization_config": {
+        "chart_type": "table",
+        "title": "Potential Account Takeovers: Dormant Account Reactivations and High-Value Transfers",
+        "x_axis_key": "username",
+        "y_axis_key": [
+          "txn_id",
+          "txn_time",
+          "amount_usd",
+          "txn_type",
+          "payment_method",
+          "activation_login_time",
+          "previous_90_day_avg_amount_usd"
+        ],
+        "label": "Suspicious Activity Details",
+        "description": "The query identifies highly specific fraud patterns (account takeover/sleeper activation) involving multiple variables like dormancy periods, login times, and novel payment methods. A table is the most appropriate format for a fraud investigation as it allows analysts to review all granular details and contextual timestamps side-by-side."
+      },
+      "insight": "This query result highlights a critical and immediate financial risk across 56 user accounts. The consistent pattern of accounts dormant for over 90 days initiating significant 'WITHDRAWAL' transactions within seven days of a new login, coupled with the use of previously unrecorded payment methods and an average previous 90-day transaction amount of zero, strongly indicates a high probability of account takeover (ATO) or malicious sleeper account activation. These activities pose a direct threat of financial loss to the enterprise or its customers, as funds are being exfiltrated via suspicious means, and could lead to significant reputational damage and potential regulatory scrutiny.",
+      "recommendation": "1. **Immediate Transaction & Account Freezing:** Implement an emergency protocol to immediately flag and, where possible, temporarily halt processing for all 56 identified withdrawal transactions. Concurrently, initiate out-of-band contact with the legitimate account holders to verify transaction legitimacy and account control, while conducting a full security review of these compromised accounts. \n2. **Proactive Risk Rule Enhancement:** Develop and deploy a real-time automated risk rule that triggers an immediate security challenge (e.g., mandatory multi-factor authentication, enhanced identity verification) or temporary transaction hold for any high-value withdrawal or transfer activity from accounts dormant for more than 90 days that attempts to use a payment method or instrument not observed in the user's last 180 days of activity. Review and strengthen dormant account reactivation policies, potentially including a mandatory waiting period for new payment method usage.",
+      "original_query": "Identify users who have had no successful login events ('status' = 'SUCCESS') or transactions for at least 90 consecutive days, but within 7 days of their first successful login after this dormant period, they initiate a 'WITHDRAWAL' or 'TRANSFER' 'txn_type' where the 'amount_usd' is more than 5 times their previous 90-day average, and involves a 'payment_method' or 'instrument' not seen in their last 180 days of activity. This could indicate an account takeover or a sleeper account activation.",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1776836488.21,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1776836488.21,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Starting Intent Classification and Preprocessing in parallel for domain: risk"
+        },
+        {
+          "ts": 1776836488.214,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classifying intent for domain: risk | Query: Identify users who have had no successful login events ('status' = 'SUCCESS') or transactions for at least 90 consecutive days, but within 7 days of their first successful login after this dormant period, they initiate a 'WITHDRAWAL' or 'TRANSFER' 'txn_type' where the 'amount_usd' is more than 5 times their previous 90-day average, and involves a 'payment_method' or 'instrument' not seen in their last 180 days of activity. This could indicate an account takeover or a sleeper account activation."
+        },
+        {
+          "ts": 1776836488.214,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836488.223,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836489.683,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 4 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776836492.27,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 9 before retrying (attempt 2/15)"
+        },
+        {
+          "ts": 1776836495.759,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"intent\": \"SELECT\",\n  \"confidence\": 1...."
+        },
+        {
+          "ts": 1776836495.759,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classification Result: SELECT (conf: 1.0) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776836502.501,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"resolved_entities\": {\n    \"login_even..."
+        },
+        {
+          "ts": 1776836502.502,
+          "level": "INFO",
+          "node": "entity_extractor.py",
+          "msg": "Final Extracted/Resolved Entities: {'login_events.status': 'SUCCESS', 'transactions.txn_type': ['WITHDRAWAL', 'TRANSFER']}"
+        },
+        {
+          "ts": 1776836502.502,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 1.0) | Needs Clarification: False"
+        },
+        {
+          "ts": 1776836502.503,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1776836502.503,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Generating SQL for domain: risk | Query: Identify users who have had no successful login events ('status' = 'SUCCESS') or transactions for at least 90 consecutive days, but within 7 days of their first successful login after this dormant period, they initiate a 'WITHDRAWAL' or 'TRANSFER' 'txn_type' where the 'amount_usd' is more than 5 times their previous 90-day average, and involves a 'payment_method' or 'instrument' not seen in their last 180 days of activity. This could indicate an account takeover or a sleeper account activation."
+        },
+        {
+          "ts": 1776836502.505,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "Using custom SQL prompt for domain: risk"
+        },
+        {
+          "ts": 1776836502.506,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836573.042,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: WITH UserActivityTimelines AS (\n    -- Combine all..."
+        },
+        {
+          "ts": 1776836573.042,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "SQL Generated and cleaned: WITH UserActivityTimelines AS (\n    -- Combine all..."
+        },
+        {
+          "ts": 1776836573.043,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generated: WITH UserActivityTimelines AS (\n    -- Combine all..."
+        },
+        {
+          "ts": 1776836573.043,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [validate_sql]"
+        },
+        {
+          "ts": 1776836573.059,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [execute_query]"
+        },
+        {
+          "ts": 1776836573.059,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Executing SQL: WITH UserActivityTimelines AS (\n    -- Combine all relevant timestamps (successful logins, all transactions) for dormancy detection.\n    -- This helps determine the \"last activity before login\" for identifying 90+ day gaps.\n    SELECT user_id, created_at FROM login_events WHERE UPPER(status) LIKE '%SUCCESS%'\n    UNION ALL\n    SELECT user_id, created_at FROM transactions\n),\nPotentialActivations AS (\n    -- Identify successful logins that occur after a 90+ day period of no activity.\n    -- This is the 'first successful login after this dormant period'.\n    SELECT\n        le.user_id,\n        le.created_at AS activation_login_time,\n        MAX(CASE WHEN uat.created_at < le.created_at THEN uat.created_at ELSE NULL END) AS last_activity_before_login\n    FROM login_events le\n    LEFT JOIN UserActivityTimelines uat ON le.user_id = uat.user_id\n    WHERE UPPER(le.status) LIKE '%SUCCESS%'\n    GROUP BY le.user_id, le.event_id, le.created_at\n    HAVING (last_activity_before_login IS NULL -- Handles the case where it's the very first activity for the user\n            OR JULIANDAY(le.created_at) - JULIANDAY(last_activity_before_login) > 90)\n),\nDormancyContext AS (\n    -- For each potential activation, define its dormancy context,\n    -- specifically the 90-day window for calculating the previous average amount.\n    SELECT\n        pa.user_id,\n        pa.activation_login_time,\n        pa.last_activity_before_login,\n        -- The 90-day average window ends on the 'last_activity_before_login' date.\n        -- It starts 89 days prior to that. If no prior activity, use a very old date.\n        CASE\n            WHEN pa.last_activity_before_login IS NOT NULL THEN DATE(pa.last_activity_before_login, '-89 days')\n            ELSE '1900-01-01' -- Far past date to ensure 0 average if no prior transactions\n        END AS avg_window_start,\n        pa.last_activity_before_login AS avg_window_end\n    FROM PotentialActivations pa\n),\nSuspiciousTransactions AS (\n    -- Find 'WITHDRAWAL' or 'TRANSFER' transactions that occur within 7 days\n    -- of the 'activation_login_time'.\n    SELECT\n        dc.user_id,\n        u.full_name, -- Using full_name as per actual schema, aliased to 'username' in final select\n        dc.activation_login_time,\n        dc.last_activity_before_login,\n        dc.avg_window_start,\n        dc.avg_window_end,\n        t.txn_id,\n        t.created_at AS txn_time,\n        t.amount_usd,\n        t.txn_type,\n        t.instrument,\n        t.payment_method\n    FROM DormancyContext dc\n    JOIN transactions t ON dc.user_id = t.user_id\n    JOIN users u ON dc.user_id = u.user_id -- To get user's full_name\n    WHERE JULIANDAY(t.created_at) >= JULIANDAY(dc.activation_login_time)\n      AND JULIANDAY(t.created_at) < JULIANDAY(dc.activation_login_time) + 7\n      AND (UPPER(t.txn_type) LIKE '%WITHDRAWAL%' OR UPPER(t.txn_type) LIKE '%TRANSFER%')\n),\nTransactionsWithPreviousAvg AS (\n    -- Calculate the average amount_usd for the user in the 90 days prior to the dormancy start.\n    SELECT\n        st.*,\n        COALESCE(\n            (SELECT AVG(t_prev.amount_usd)\n             FROM transactions t_prev\n             WHERE t_prev.user_id = st.user_id\n               AND t_prev.created_at >= st.avg_window_start\n               AND t_prev.created_at <= st.avg_window_end\n            ), 0\n        ) AS previous_90_day_avg_amount_usd\n    FROM SuspiciousTransactions st\n)\nSELECT\n    twpa.full_name AS username,\n    twpa.txn_id,\n    twpa.txn_time,\n    twpa.amount_usd,\n    twpa.txn_type,\n    twpa.instrument,\n    twpa.payment_method,\n    twpa.activation_login_time,\n    twpa.last_activity_before_login,\n    twpa.previous_90_day_avg_amount_usd\nFROM TransactionsWithPreviousAvg twpa\nWHERE twpa.amount_usd > (twpa.previous_90_day_avg_amount_usd * 5)\n  AND (\n        -- Check if the 'instrument' of the suspicious transaction was NOT seen in the last 180 days.\n        -- Handles both NULL and non-NULL instruments based on strict LIKE rule.\n        (\n            (twpa.instrument IS NULL AND NOT EXISTS ( -- If current instrument is NULL, check if NULL instrument was seen before\n                SELECT 1 FROM transactions t_hist WHERE t_hist.user_id = twpa.user_id\n                AND JULIANDAY(t_hist.created_at) >= JULIANDAY(twpa.txn_time) - 180\n                AND JULIANDAY(t_hist.created_at) < JULIANDAY(twpa.txn_time)\n                AND t_hist.instrument IS NULL\n            ))\n            OR\n            (twpa.instrument IS NOT NULL AND NOT EXISTS ( -- If current instrument is not NULL, check for similar instrument (partial match)\n                SELECT 1 FROM transactions t_hist WHERE t_hist.user_id = twpa.user_id\n                AND JULIANDAY(t_hist.created_at) >= JULIANDAY(twpa.txn_time) - 180\n                AND JULIANDAY(t_hist.created_at) < JULIANDAY(twpa.txn_time)\n                AND UPPER(t_hist.instrument) LIKE '%' || UPPER(twpa.instrument) || '%'\n            ))\n        )\n        OR\n        -- Check if the 'payment_method' of the suspicious transaction was NOT seen in the last 180 days.\n        -- Handles both NULL and non-NULL payment_methods based on strict LIKE rule.\n        (\n            (twpa.payment_method IS NULL AND NOT EXISTS ( -- If current payment_method is NULL, check if NULL payment_method was seen before\n                SELECT 1 FROM transactions t_hist WHERE t_hist.user_id = twpa.user_id\n                AND JULIANDAY(t_hist.created_at) >= JULIANDAY(twpa.txn_time) - 180\n                AND JULIANDAY(t_hist.created_at) < JULIANDAY(twpa.txn_time)\n                AND t_hist.payment_method IS NULL\n            ))\n            OR\n            (twpa.payment_method IS NOT NULL AND NOT EXISTS ( -- If current payment_method is not NULL, check for similar payment_method (partial match)\n                SELECT 1 FROM transactions t_hist WHERE t_hist.user_id = twpa.user_id\n                AND JULIANDAY(t_hist.created_at) >= JULIANDAY(twpa.txn_time) - 180\n                AND JULIANDAY(t_hist.created_at) < JULIANDAY(twpa.txn_time)\n                AND UPPER(t_hist.payment_method) LIKE '%' || UPPER(twpa.payment_method) || '%'\n            ))\n        )\n      );"
+        },
+        {
+          "ts": 1776836574.949,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Execution complete. Returned 56 rows."
+        },
+        {
+          "ts": 1776836574.949,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Query execution successful. Rows: 56"
+        },
+        {
+          "ts": 1776836574.95,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [insight_recommendation]"
+        },
+        {
+          "ts": 1776836574.95,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "Generating insights for 56 rows in domain: risk"
+        },
+        {
+          "ts": 1776836574.95,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836574.951,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [recommend_visualization]"
+        },
+        {
+          "ts": 1776836574.951,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-3-flash-preview] generating response..."
+        },
+        {
+          "ts": 1776836582.293,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-3-flash-preview]. Snippet: {\n  \"chart_type\": \"table\",\n  \"title\": \"Potential A..."
+        },
+        {
+          "ts": 1776836582.293,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Visualization recommended: table"
+        },
+        {
+          "ts": 1776836588.958,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"insight\": \"This query result highligh..."
+        },
+        {
+          "ts": 1776836588.958,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Insights generated successfully."
+        }
+      ]
+    },
+    {
+      "mission_id": "RISK002_LOW_RISK_CONCENTRATION",
+      "mission_name": "Unmanaged Concentration Risk in Low-Risk Users",
+      "domain": "risk",
+      "severity": "LOW",
+      "risk_score": 0,
+      "risk_factors": {},
+      "sql": null,
+      "data_count": 0,
+      "results": [],
+      "visualization_config": null,
+      "insight": null,
+      "recommendation": null,
+      "original_query": "Detect users with a 'risk_level' of 'LOW' or 'MEDIUM' where more than 70% of their total 'amount_usd' transacted over the last 60 days is concentrated in a single 'instrument' type or 'payment_method' that is generally associated with a higher system-wide average 'risk_score' (e.g., above 7.0), and these transactions rarely result in a 'flag_reason' other than 'NONE'. This highlights unmanaged concentration risk for ostensibly low-risk user profiles.",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1776836488.211,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1776836488.211,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Starting Intent Classification and Preprocessing in parallel for domain: risk"
+        },
+        {
+          "ts": 1776836488.215,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classifying intent for domain: risk | Query: Detect users with a 'risk_level' of 'LOW' or 'MEDIUM' where more than 70% of their total 'amount_usd' transacted over the last 60 days is concentrated in a single 'instrument' type or 'payment_method' that is generally associated with a higher system-wide average 'risk_score' (e.g., above 7.0), and these transactions rarely result in a 'flag_reason' other than 'NONE'. This highlights unmanaged concentration risk for ostensibly low-risk user profiles."
+        },
+        {
+          "ts": 1776836488.215,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836488.224,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836489.681,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 19 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776836489.683,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 5 before retrying (attempt 1/15)"
+        },
+        {
+          "ts": 1776836495.073,
+          "level": "WARNING",
+          "node": "llm.py",
+          "msg": "Rate limit encountered. Rotating Gemini API Key to index 12 before retrying (attempt 2/15)"
+        },
+        {
+          "ts": 1776836498.077,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"intent\": \"SELECT\",\n  \"confidence\": 0...."
+        },
+        {
+          "ts": 1776836498.078,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "Classification Result: SELECT (conf: 0.9) | Needs Clarification: True"
+        },
+        {
+          "ts": 1776836516.04,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: ```json\n{\n  \"resolved_entities\": {\n    \"users.risk..."
+        },
+        {
+          "ts": 1776836516.04,
+          "level": "INFO",
+          "node": "entity_extractor.py",
+          "msg": "Final Extracted/Resolved Entities: {'users.risk_level': ['LOW', 'MEDIUM'], 'transactions.flag_reason': ''}"
+        },
+        {
+          "ts": 1776836516.041,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.9) | Needs Clarification: True"
+        },
+        {
+          "ts": 1776836516.043,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [gemini] using model [gemini-2.5-flash] generating response..."
+        },
+        {
+          "ts": 1776836522.313,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [gemini-2.5-flash]. Snippet: I see you're looking to define a sophisticated rul..."
+        }
+      ]
+    }
+  ],
+  "clusters": [],
+  "narrative": {
+    "executive_summary": "Your platform currently faces a critical and immediate financial risk stemming from a sophisticated exploit targeting dormant accounts. We have identified 56 user accounts, previously inactive for over 90 days, that have recently initiated significant withdrawal transactions using previously unrecorded payment methods shortly after reactivation. This consistent pattern strongly suggests a coordinated fraudulent activity, posing a direct threat to customer assets and platform integrity. Immediate intervention is required to contain this exploit and mitigate potential losses.",
+    "threat_vectors": [
+      {
+        "name": "Dormant Account Activation and High-Risk Exploit",
+        "severity": "HIGH",
+        "description": "A critical financial exploit impacting 56 user accounts, where dormant accounts (inactive >90 days) are reactivated, followed by significant withdrawals using new, unrecorded payment methods within seven days. This indicates potential account takeover and fraud."
+      }
+    ],
+    "immediate_actions": [
+      "Immediately freeze or place under enhanced review the 56 identified accounts to prevent further unauthorized transactions and potential financial losses.",
+      "Launch a forensic investigation into the reactivation methods and associated new payment methods to identify compromise vectors and the extent of the breach.",
+      "Implement an emergency policy requiring mandatory multi-factor authentication and a 48-hour hold for new payment method usage on all reactivated dormant accounts.",
+      "Quantify the potential financial exposure and prepare a communication plan for affected customers."
+    ],
+    "monitoring_recommendations": [
+      "Prioritize and enhance real-time monitoring for dormant account reactivation, specifically flagging logins followed by rapid transaction attempts or new payment method additions.",
+      "Conduct an expedited audit of all dormant account security protocols and reactivation workflows to identify and mitigate systemic vulnerabilities.",
+      "Verify the operational status and data collection for all other critical intelligence missions, addressing any 'no data found' issues to ensure comprehensive threat visibility."
+    ],
+    "overall_risk": 72,
+    "overall_severity": "HIGH",
+    "title": "Intelligence Brief - LIVE"
+  }
+}
